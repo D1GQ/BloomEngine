@@ -1,27 +1,48 @@
-﻿using BepInEx;
-using BepInEx.Logging;
-using BepInEx.Unity.IL2CPP;
-using HarmonyLib;
+﻿using BloomEngine;
+using Il2CppInterop.Runtime.Injection;
+using MelonLoader;
+using System.Runtime.InteropServices;
+using UnityEngine;
+
+[assembly: MelonInfo(typeof(BloomEnginePlugin), BloomEnginePlugin.Name, BloomEnginePlugin.Version, BloomEnginePlugin.Author)]
+[assembly: MelonGame("PopCap Games", "PvZ Replanted")]
+[assembly: ComVisible(false)]
 
 namespace BloomEngine;
 
-[BepInPlugin(Name, Name, Version)]
-[BepInProcess("Replanted.exe")]
-public class BloomEnginePlugin : BasePlugin
+public class BloomEnginePlugin : MelonMod
 {
     public const string Name = "BloomEngine";
     public const string Version = "1.0.0";
-    public const string Id = "com.palmforest.bloomengine";
+    public const string Author = "PalmForest";
 
-    public Harmony Harmony { get; } = new Harmony(Id);
+    public static MelonLogger.Instance Logger;
 
-    public static ManualLogSource Logger;
-
-    public override void Load()
+    public override void OnInitializeMelon()
     {
-        Logger = Log;
-        Logger.LogInfo($"Successfully initialised {nameof(BloomEngine)}.");
+        Logger = LoggerInstance;
+        Logger.Msg($"Successfully initialised {nameof(BloomEngine)}.");
 
-        Harmony.PatchAll();
+        HarmonyInstance.PatchAll();
+        RegisterAllMonoBehaviours();
+    }
+
+    private void RegisterAllMonoBehaviours()
+    {
+        var monoBehaviourTypes = MelonAssembly.Assembly.GetTypes()
+            .Where(type => type.IsSubclassOf(typeof(MonoBehaviour)) && !type.IsAbstract)
+            .OrderBy(type => type.Name);
+
+        foreach (var type in monoBehaviourTypes)
+        {
+            try
+            {
+                ClassInjector.RegisterTypeInIl2Cpp(type);
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Error($"Failed to register MonoBehaviour: {type.FullName}\n{e}");
+            }
+        }
     }
 }

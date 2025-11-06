@@ -8,8 +8,14 @@
 
   <ItemGroup>
 	<PackageReference Include="HarmonyX" Version="2.15.0" />
-	<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.738" />
-	<PackageReference Include="PvZ.Replanted.GameLibs" Version="1.2.1.2" />
+	<PackageReference Include="LavaGang.MelonLoader" Version="0.7.1" />
+	<PackageReference Include="Il2CppInterop.Runtime" Version="1.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Reference Include="C:\Program Files (x86)\Steam\steamapps\common\PVZ Replanted\MelonLoader\Il2CppAssemblies\*.dll">
+	  <Private>false</Private>
+	</Reference>
   </ItemGroup>
 
 </Project>
