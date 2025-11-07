@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace BloomEngine.Utilities;
 
-public static class AssetLoader
+public static class AssetHelper
 {
     private delegate bool DLoadImage(IntPtr tex, IntPtr data, bool markNonReadable);
     private static DLoadImage _iCallLoadImage;

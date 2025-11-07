@@ -1,5 +1,7 @@
-﻿using Il2CppReloaded.UI;
+﻿using BloomEngine.Utilities;
 using Il2CppTMPro;
+using Il2CppUI.Scripts;
+using MelonLoader;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -7,53 +9,61 @@ namespace BloomEngine.Behaviours;
 
 public class ModListManager : MonoBehaviour
 {
-    private TMP_FontAsset font;
+    public bool ModMenuOpen { get; private set; } = false;
+
     private Transform achievementsMenu;
     private UnityEngine.UI.Button achievementsButton;
+    private AchievementsUI achievementsUI;
 
     public void Start()
     {
-        font = transform.parent.Find("Layout").Find("Center").Find("Main").Find("AccountSign").Find("SignTop").Find("NameLabel").GetComponent<TextMeshProUGUI>().font;
-        achievementsMenu = transform.parent.Find("Layout").Find("Center").Find("Achievements").Find("ScrollView").Find("Viewport").Find("Content").Find("Achievements");
-        achievementsButton = transform.parent.Find("Layout").Find("Center").Find("Main").Find("BG_Tree").Find("AchievementsButton").GetComponent<UnityEngine.UI.Button>();
+        achievementsUI = transform.GetComponentInParent<AchievementsUI>();
 
-        //CreateModsButton();
+        achievementsMenu = transform.parent.Find("ScrollView").Find("Viewport").Find("Content").Find("Achievements");
+        achievementsButton = transform.parent.parent.Find("Main").Find("BG_Tree").Find("AchievementsButton").GetComponent<UnityEngine.UI.Button>();
+
+        CreateModsEntries();
+        CreateModsButton();
     }
+
 
     private void CreateModsButton()
     {
-        var obj = new GameObject("ModsButton");
-        obj.transform.SetParent(transform, false);
-
-        UnityEngine.UI.Button modsButton = obj.AddComponent<UnityEngine.UI.Button>();
+        GameObject obj = UIHelper.CreateButton("ModsButton", transform, "Mods", ShowModList);
 
         // Position the modsButton in the bottom left corner
-        RectTransform rect = obj.AddComponent<RectTransform>();
-        rect.pivot = new Vector2(0, 0);
-        rect.anchorMin = new Vector2(0, 0);
-        rect.anchorMax = new Vector2(0, 0);
-        rect.anchoredPosition = new Vector2(25, 25);
-        rect.sizeDelta = new Vector2(160, 30);
+        RectTransform rect = obj.GetComponent<RectTransform>();
+        rect.pivot = new Vector2(0, 1);
+        rect.anchorMin = new Vector2(0, 1);
+        rect.anchorMax = new Vector2(0, 1);
+        rect.anchoredPosition = new Vector2(25, rect.rect.height + 25);
 
-        // Add a label that says "Mods"
-        GameObject text = new GameObject("Text");
-        text.transform.SetParent(obj.transform);
-        TextMeshProUGUI buttonText = obj.AddComponent<TextMeshProUGUI>();
-        buttonText.text = "Mods";
-        buttonText.font = font;
-        buttonText.alignment = TextAlignmentOptions.Center;
-
-        modsButton.onClick.AddListener((UnityAction)ShowModList);
         achievementsButton.onClick.AddListener((UnityAction)ShowAchievementList);
+        achievementsUI.m_backButton.onClick.AddListener((UnityAction)(() => ModMenuOpen = false));
+    }
+
+    private void CreateModsEntries()
+    {
+        GameObject prefab = transform.parent.parent.Find("Achievements").Find("AchievementItem").gameObject;
+
+        foreach (var mod in MelonMod.RegisteredMelons)
+        {
+            GameObject modEntry = GameObject.Instantiate(prefab, achievementsMenu);
+            modEntry.SetActive(true);
+            modEntry.name = $"ModEntry_{mod.Info.Name}";
+
+            modEntry.transform.Find("Title").GetComponent<TextMeshProUGUI>().text = mod.Info.Name;
+            modEntry.transform.Find("Subheader").GetComponent<TextMeshProUGUI>().text = mod.Info.Version;
+        }
     }
 
     private void ShowModList()
     {
-        BloomEnginePlugin.Logger.Msg("Opening the Mods list.");
-
         SetHeaderText("Mods");
         ReplaceWithModList(true);
+
         PanScreenDown();
+        ModMenuOpen = true;
     }
 
     private void ShowAchievementList()
@@ -67,9 +77,9 @@ public class ModListManager : MonoBehaviour
     /// </summary>
     private void SetHeaderText(string text)
     {
-        achievementsMenu.Find("HeaderRock").GetComponent<TextMeshProUGUI>().text = text;
-        achievementsMenu.Find("HeaderRockTop").GetComponent<TextMeshProUGUI>().text = text;
-        achievementsMenu.Find("HeaderRockBottom").GetComponent<TextMeshProUGUI>().text = text;
+        achievementsMenu.parent.Find("Header").Find("Center").Find("HeaderRock").GetComponent<TextMeshProUGUI>().text = text;
+        achievementsMenu.parent.Find("Header").Find("Center").Find("HeaderRockTop").GetComponent<TextMeshProUGUI>().text = text;
+        achievementsMenu.parent.Find("Header").Find("Center").Find("HeaderRockBottom").GetComponent<TextMeshProUGUI>().text = text;
     }
 
     /// <summary>
@@ -80,16 +90,12 @@ public class ModListManager : MonoBehaviour
     {
         for (int i = 0; i < achievementsMenu.childCount; i++)
         {
-            achievementsMenu.GetChild(i);
-        }
+            GameObject entry = achievementsMenu.GetChild(i).gameObject;
 
-        foreach (var achievement in achievementsMenu.GetComponentsInChildren<Transform>())
-        {
-            // Hide all achievements if showing mods, otherwise show only cloned achievements
-            if (showMods)
-                achievement.gameObject.SetActive(false);
-            else if (achievement.name.EndsWith("(Clone)"))
-                achievement.gameObject.SetActive(true);
+            if (entry.name.StartsWith("ModEntry_"))
+                entry.SetActive(showMods);
+            else if (entry.name.StartsWith("P_") && entry.name.EndsWith("(Clone)"))
+                entry.SetActive(!showMods);
         }
     }
 
@@ -98,6 +104,6 @@ public class ModListManager : MonoBehaviour
     /// </summary>
     private void PanScreenDown()
     {
-        transform.parent.parent.GetComponent<MainMenuPanelView>().PlayAnimation("A_MainMenu_Achievements_In");
+        UIHelper.MainMenu.PlayAnimation("A_MainMenu_Achievements_In");
     }
 }
