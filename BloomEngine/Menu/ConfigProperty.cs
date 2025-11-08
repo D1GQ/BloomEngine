@@ -1,22 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BloomEngine.Menu;
+﻿namespace BloomEngine.Menu;
 
 public class ConfigProperty
 {
     public string Name { get; }
-    public string Info { get; }
-    public Func<string> Getter { get; }
-    public Action<string> Setter { get; }
-    public ConfigProperty(string name, Func<string> getter, Action<string> setter, string info = default)
+    public string PlaceHolder { get; }
+    public string Description { get; }
+    public Type PropertyType { get; }
+
+    public Func<object> Getter { get; }
+    public Action<object> Setter { get; }
+    public Action<object> OnValueChanged { get; }
+
+    public ConfigProperty(
+        string name,
+        Type type,
+        Func<object> getter,
+        Action<object> setter,
+        Action<object> onValueChanged,
+        string placeholder,
+        string description = default)
     {
         Name = name;
-        Info = info;
+        PropertyType = type;
         Getter = getter;
         Setter = setter;
+        OnValueChanged = onValueChanged;
+        PlaceHolder = placeholder;
+        Description = description;
     }
 }

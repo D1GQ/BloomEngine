@@ -26,14 +26,14 @@ public class BloomEnginePlugin : MelonMod
         HarmonyInstance.PatchAll();
         RegisterAllMonoBehaviours();
 
-        ModMenu.Register(this, new ModConfig(new ConfigProperty(
-            nameof(CoolProperty),
-            () => CoolProperty,
-            (value) => CoolProperty = value,
-            "This is an example configuration property."
-        )));
-
-        LoggerInstance.Msg($"Value of {nameof(CoolProperty)} is {CoolProperty}");
+        ModMenu.NewEntry(this, "com.palmforest.bloomengine", "BloomEnginge")
+            .AddDescription("A mod list and config manager library for PvZ Replanted modding.")
+            .AddConfigProperty(() => CoolProperty, nameof(CoolProperty), onValueChanged: newValue =>
+            {
+                CoolProperty = newValue.ToUpperInvariant();
+                LoggerInstance.Msg($"CoolProperty changed to: {newValue}");
+            }, description: "An example config property.")
+            .Register();
     }
 
     private void RegisterAllMonoBehaviours()
