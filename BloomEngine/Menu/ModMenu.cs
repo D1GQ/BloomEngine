@@ -1,5 +1,6 @@
 ﻿using MelonLoader;
 using System.Collections.Concurrent;
+using UnityEngine;
 
 namespace BloomEngine.Menu;
 
@@ -23,10 +24,31 @@ public static class ModMenu
         mods[entry.Id] = entry;
         OnModRegistered?.Invoke(entry);
 
-        Melon<BloomEnginePlugin>.Logger.Msg($"[ModMenu] Successfully registered {entry.DisplayName} with {entry.Properties.Count} config {(entry.Properties.Count > 1 ? "properties" : "property")}.");
+        ModMenu.Log($"[ModMenu] Successfully registered {entry.DisplayName} with {entry.Properties.Count} config {(entry.Properties.Count > 1 ? "properties" : "property")}.");
         foreach (var prop in entry.Properties)
         {
-            Melon<BloomEnginePlugin>.Logger.Msg($"    - {prop.Name} ({prop.InputType.ToString()})");
+            ModMenu.Log($"    - {prop.Name} ({prop.InputType.ToString()})");
+        }
+    }
+
+    /// <summary>
+    /// Logs a message to the MelonLoader console with the ModMenu prefix.
+    /// Uses Unity's LogType enum because I can't be bothered to make my own XD.
+    /// Defaults to Log, can also use Warning or Error.
+    /// </summary>
+    internal static void Log(string text, LogType type = LogType.Log)
+    {
+        switch (type)
+        {
+            case LogType.Warning:
+                Melon<BloomEnginePlugin>.Logger.Warning($"[ModMenu] {text}");
+                break;
+            case LogType.Error:
+                Melon<BloomEnginePlugin>.Logger.Error($"[ModMenu] {text}");
+                break;
+            default:
+                Melon<BloomEnginePlugin>.Logger.Msg($"[ModMenu] {text}");
+                break;
         }
     }
 }

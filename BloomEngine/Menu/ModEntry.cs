@@ -44,7 +44,7 @@ public class ModEntry
             Type type = prop.PropertyType;
             if (!IsPropertyTypeSupported(type))
             {
-                Melon<BloomEnginePlugin>.Logger.Warning($"[ModMenu] Failed to add config property '{prop.Name}' for mod '{DisplayName}': Property type '{type.Name}' is not supported.");
+                ModMenu.Log($"[ModMenu] Failed to add config property '{prop.Name}' for mod '{DisplayName}': Property type '{type.Name}' is not supported.", LogType.Warning);
                 continue;
             }
 

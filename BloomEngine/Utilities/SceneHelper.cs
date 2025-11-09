@@ -1,0 +1,12 @@
+﻿using UnityEngine;
+
+namespace BloomEngine.Utilities;
+
+public static class SceneHelper
+{
+    public static T FindComponent<T>(this Transform obj, string path) where T : MonoBehaviour => obj?.Find(path)?.GetComponentInChildren<T>(true);
+    public static T FindComponent<T>(this GameObject obj, string path) where T : MonoBehaviour => obj?.transform?.Find(path)?.GetComponentInChildren<T>(true);
+
+    public static T[] FindComponents<T>(this Transform obj, string path) where T : MonoBehaviour => obj?.Find(path)?.GetComponentsInChildren<T>(true);
+    public static T[] FindComponents<T>(this GameObject obj, string path) where T : MonoBehaviour => obj?.transform?.Find(path)?.GetComponentsInChildren<T>(true);
+}

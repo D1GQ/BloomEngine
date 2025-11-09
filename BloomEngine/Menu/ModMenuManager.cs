@@ -20,7 +20,7 @@ internal class ModMenuManager : MonoBehaviour
         achieveUi = transform.GetComponentInParent<AchievementsUI>();
 
         achieveContainer = transform.parent.Find("ScrollView").Find("Viewport").Find("Content").Find("Achievements");
-        achieveButton = transform.parent.parent.Find("Main").Find("BG_Tree").Find("AchievementsButton").GetComponent<UnityEngine.UI.Button>();
+        achieveButton = transform.parent.parent.FindComponent<UnityEngine.UI.Button>("Main/BG_Tree/AchievementsButton");
 
         CreateModsEntries();
         CreateModsButton();
@@ -44,7 +44,7 @@ internal class ModMenuManager : MonoBehaviour
 
     private void CreateModsEntries()
     {
-        GameObject prefab = transform.parent.parent.Find("Achievements").Find("AchievementItem").gameObject;
+        GameObject prefab = transform.parent.parent.Find("Achievements/AchievementItem").gameObject;
 
         foreach (var mod in MelonMod.RegisteredMelons)
         {
@@ -52,9 +52,9 @@ internal class ModMenuManager : MonoBehaviour
             modEntry.SetActive(true);
             modEntry.name = $"ModEntry_{mod.Info.Name}";
 
-            modEntry.transform.Find("Title").GetComponent<TextMeshProUGUI>().text = mod.Info.Name;
-            modEntry.transform.Find("Subheader").GetComponent<TextMeshProUGUI>().text = $"{mod.Info.Author}\n{mod.Info.Version}";
-            modEntry.transform.Find("Subheader").GetComponent<TextMeshProUGUI>().lineSpacing = 5;
+            modEntry.FindComponent<TextMeshProUGUI>("Title").text = mod.Info.Name;
+            modEntry.FindComponent<TextMeshProUGUI>("Subheader").text = $"{mod.Info.Author}\n{mod.Info.Version}";
+            modEntry.FindComponent<TextMeshProUGUI>("Subheader").lineSpacing = 5;
         }
     }
 
@@ -78,9 +78,9 @@ internal class ModMenuManager : MonoBehaviour
     /// </summary>
     private void SetHeaderText(string text)
     {
-        achieveContainer.parent.Find("Header").Find("Center").Find("HeaderRock").GetComponent<TextMeshProUGUI>().text = text;
-        achieveContainer.parent.Find("Header").Find("Center").Find("HeaderRockTop").GetComponent<TextMeshProUGUI>().text = text;
-        achieveContainer.parent.Find("Header").Find("Center").Find("HeaderRockBottom").GetComponent<TextMeshProUGUI>().text = text;
+        achieveContainer.parent.FindComponent<TextMeshProUGUI>("Header/Center/HeaderRock").text = text;
+        achieveContainer.parent.FindComponent<TextMeshProUGUI>("Header/Center/HeaderRockTop").text = text;
+        achieveContainer.parent.FindComponent<TextMeshProUGUI>("Header/Center/HeaderRockBottom").text = text;
     }
 
     /// <summary>
