@@ -4,12 +4,11 @@ public class ConfigProperty<T> : IConfigProperty
 {
     public string Name { get; set; }
     public string Description { get; protected set; }
-    //public PropertyInputType InputType { get; private set; } = PropertyInputType.Auto;
     public Type ValueType => typeof(T);
 
+    public Action<T> OnValueUpdated { get; private set; }
     public Func<T, bool> ValidateFunc { get; private set; }
     public Func<T, T> TransformFunc { get; private set; }
-    public Action<T> OnValueUpdated { get; private set; }
 
     public T DefaultValue { get; private set; }
 
@@ -27,12 +26,27 @@ public class ConfigProperty<T> : IConfigProperty
     }
 
     public object GetValue() => Value;
-    public void SetValue(object val)
+
+    public void SetValue(object value)
     {
-        if (val is T correctVal)
-            Value = (T)val;
+        if (value is T correctVal)
+            Value = (T)value;
     }
-    public object TransformInput(object value) => TransformFunc is not null ? TransformFunc((T)value) : value;
+
+    public bool ValidateValue(object value)
+    {
+        if (ValidateFunc is null || ValidateFunc.Invoke((T)value))
+            return true;
+
+        return false;
+    }
+
+    public object TransformValue(object value)
+    {
+        if (TransformFunc is not null)
+            return TransformFunc.Invoke((T)value);
+        return value;
+    }
 
     internal ConfigProperty(string name, T defaultValue, Action<T> onValueUpdated = null, Func<T, bool> validateFunc = null, Func<T, T> transformFunc = null)
     {
@@ -44,16 +58,4 @@ public class ConfigProperty<T> : IConfigProperty
         ValidateFunc = validateFunc;
         TransformFunc = transformFunc;
     }
-
-    //private static PropertyInputType InferInputType(Type type) => type switch
-    //{
-    //    var t when t == typeof(int) => PropertyInputType.NumberBox,
-    //    var t when t == typeof(float) => PropertyInputType.NumberBox,
-    //    var t when t == typeof(double) => PropertyInputType.NumberBox,
-    //    var t when t == typeof(long) => PropertyInputType.NumberBox,
-    //    var t when t == typeof(short) => PropertyInputType.NumberBox,
-    //    var t when t == typeof(bool) => PropertyInputType.Checkbox,
-    //    var t when t == typeof(Action) => PropertyInputType.Button,
-    //    _ => PropertyInputType.TextBox
-    //};
 }

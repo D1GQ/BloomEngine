@@ -34,64 +34,23 @@ public class ModEntry
         return this;
     }
 
-    public void Register() => ModMenu.Register(this);
-
     public ModEntry AddConfig(ModConfigBase configInstance)
     {
         Config = configInstance;
         return this;
     }
 
-    //public ModEntry AddConfigProperty<T>
-    //    (Expression<Func<T>> propertyExpression,
-    //    string name,
-    //    Func<T, T> onValueChanged = default,
-    //    string placeholder = default,
-    //    string description = default,
-    //    PropertyInputType inputType = PropertyInputType.Auto)
-    //{
-    //    if (propertyExpression.Body is not MemberExpression member || member.Member is not PropertyInfo propInfo)
-    //    {
-    //        Melon<BloomEnginePlugin>.Logger.Warning($"Failed to add config property '{name}' for mod '{DisplayName}': Expression body is not a MemberExpression or isn't a valid property.\nA property access expression must be passed like this: () => obj.SomeProperty");
-    //        return this;
-    //    }
+    public ModEntry AddConfigProperty<T>(string name, T defaultValue, Action<T> onValueUpdated = null, Func<T, bool> validateFunc = null, Func<T, T> transformFunc = null)
+    {
+        Config ??= new ModConfigBase();
+        Config.AddProperty(name, defaultValue, onValueUpdated, validateFunc, transformFunc);
 
-    //    var targetExpression = member.Expression as ConstantExpression ?? (member.Expression as MemberExpression)?.Expression as ConstantExpression;
-    //    object targetObject = targetExpression?.Value ?? Expression.Lambda(member.Expression).Compile().DynamicInvoke();
+        return this;
+    }
 
-    //    Type type = propInfo.PropertyType;
-    //    if (!IsPropertyTypeSupported(type))
-    //    {
-    //        Melon<BloomEnginePlugin>.Logger.Warning($"Failed to add config property '{name}' for mod '{DisplayName}': Property type '{type.Name}' is not supported.");
-    //        return this;
-    //    }
-
-    //    // Create typed getter and setter
-    //    Func<T> getter = propertyExpression.Compile();
-    //    Action<T> setter = default;
-
-    //    if (propInfo.SetMethod is not null && type != typeof(Action))
-    //    {
-    //        var valueParam = Expression.Parameter(typeof(T), "val");
-    //        var setCall = Expression.Call(
-    //            Expression.Constant(targetObject),
-    //            propInfo.SetMethod,
-    //            valueParam
-    //        );
-    //        setter = Expression.Lambda<Action<T>>(setCall, valueParam).Compile();
-    //    }
-
-    //    // Wrap to object delegates for ConfigProperty
-    //    Func<object> getterWrapped = () => getter();
-    //    Action<object> setterWrapped = setter is not null ? (val => setter((T)val)) : null;
-    //    Func<object, object> onValueChangedWrapped = onValueChanged is not null ? (val => onValueChanged((T)val)) : null;
-
-    //    if (inputType == PropertyInputType.Auto)
-    //        inputType = InferInputType(type);
-
-    //    var property = new ConfigProperty(propInfo.Name, type, getterWrapped, setterWrapped, placeholder, description, onValueChangedWrapped, inputType);
-    //    Properties.Add(property);
-
-    //    return this;
-    //}
+    public ModEntry Register()
+    {
+        ModMenu.Register(this);
+        return this;
+    }
 }

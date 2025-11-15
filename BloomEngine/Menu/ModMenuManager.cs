@@ -1,5 +1,4 @@
-﻿using BloomEngine.Patches;
-using BloomEngine.Utilities;
+﻿using BloomEngine.Utilities;
 using Il2CppTMPro;
 using Il2CppUI.Scripts;
 using MelonLoader;
@@ -14,7 +13,7 @@ internal class ModMenuManager : MonoBehaviour
     public bool ModMenuOpen { get; private set; } = false;
 
     private Transform achieveContainer;
-    private UnityEngine.UI.Button achieveButton;
+    private Button achieveButton;
     private AchievementsUI achieveUi;
 
     public void Start()
@@ -22,7 +21,7 @@ internal class ModMenuManager : MonoBehaviour
         achieveUi = transform.GetComponentInParent<AchievementsUI>();
 
         achieveContainer = transform.parent.Find("ScrollView").Find("Viewport").Find("Content").Find("Achievements");
-        achieveButton = transform.parent.parent.FindComponent<UnityEngine.UI.Button>("Main/BG_Tree/AchievementsButton");
+        achieveButton = transform.parent.parent.FindComponent<Button>("Main/BG_Tree/AchievementsButton");
 
         CreateModsEntries();
         CreateModsButton();
@@ -33,7 +32,7 @@ internal class ModMenuManager : MonoBehaviour
     {
         GameObject obj = UIHelper.CreateButton("ModsButton", transform, "Mods", () =>
         {
-            ModConfigPanelPatch.OpenConfigPanel(ModMenu.Entries.First(mod => mod.Id == "com.palmforest.pvzenhanced"));
+            ModMenu.ShowConfigPanel(ModMenu.Mods.First(entry => entry.Id == "com.palmforest.pvzenhanced"));
         });
 
         // Position the modsButton in the bottom left corner
@@ -53,11 +52,11 @@ internal class ModMenuManager : MonoBehaviour
 
         foreach (var mod in MelonMod.RegisteredMelons)
         {
-            GameObject modEntry = GameObject.Instantiate(prefab, achieveContainer);
-            modEntry.SetActive(true);
-            modEntry.name = $"ModEntry_{mod.Info.Name}";
+            GameObject obj = GameObject.Instantiate(prefab, achieveContainer);
+            obj.SetActive(true);
+            obj.name = $"ModEntry_{mod.Info.Name}";
 
-            ModEntry entry = ModMenu.Entries.FirstOrDefault(e => e.Mod == mod);
+            ModEntry entry = ModMenu.Mods.FirstOrDefault(e => e.Mod == mod);
             string name = mod.Info.Name;
             string description = $"{mod.Info.Author}\n{mod.Info.Version}";
 
@@ -68,13 +67,12 @@ internal class ModMenuManager : MonoBehaviour
                 if (!string.IsNullOrWhiteSpace(entry.Description))
                     description = entry.Description;
 
-                Button button = modEntry.transform.Find("Icon").gameObject.AddComponent<Button>();
-                button.onClick.AddListener((UnityAction)(() => ModConfigPanelPatch.OpenConfigPanel(entry)));
+                Button button = obj.transform.Find("Icon").gameObject.AddComponent<Button>();
+                button.onClick.AddListener((UnityAction)(() => ModMenu.ShowConfigPanel(entry)));
             }
 
-            modEntry.FindComponent<TextMeshProUGUI>("Title").text = name;
-            modEntry.FindComponent<TextMeshProUGUI>("Subheader").text = description;
-            //modEntry.FindComponent<TextMeshProUGUI>("Subheader").lineSpacing = 5;
+            obj.FindComponent<TextMeshProUGUI>("Title").text = name;
+            obj.FindComponent<TextMeshProUGUI>("Subheader").text = description;
         }
     }
 

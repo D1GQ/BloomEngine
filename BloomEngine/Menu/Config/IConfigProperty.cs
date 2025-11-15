@@ -8,5 +8,6 @@ public interface IConfigProperty
 
     abstract object GetValue();
     abstract void SetValue(object value);
-    //abstract string TransformInput(string value);
+    abstract bool ValidateValue(object value);
+    abstract object TransformValue(object value);
 }

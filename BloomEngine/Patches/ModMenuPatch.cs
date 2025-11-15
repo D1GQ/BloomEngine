@@ -1,27 +1,16 @@
 ﻿using BloomEngine.Menu;
-using BloomEngine.Utilities;
 using HarmonyLib;
-using Il2CppReloaded.UI;
 using Il2CppUI.Scripts;
 using UnityEngine;
 
-namespace PvZEnhanced.Patches;
+namespace BloomEngine.Patches;
 
-[HarmonyPatch]
-static internal class MainMenuPatches
+[HarmonyPatch(typeof(AchievementsUI))]
+static internal class ModMenuPatch
 {
-    private static ModMenuManager modListManager;
-
-    [HarmonyPatch(typeof(MainMenuPanelView), nameof(MainMenuPanelView.Start))]
+    [HarmonyPatch(nameof(AchievementsUI.Start))]
     [HarmonyPostfix]
-    private static void MainMenuStart(MainMenuPanelView __instance)
-    {
-        UIHelper.Initialize(__instance);
-    }
-
-    [HarmonyPatch(typeof(AchievementsUI), nameof(AchievementsUI.Start))]
-    [HarmonyPostfix]
-    private static void AchievementsStart(AchievementsUI __instance)
+    private static void AchievementsUIStartPostfix(AchievementsUI __instance)
     {
         CreateModMenu(__instance);
     }
@@ -41,6 +30,6 @@ static internal class MainMenuPatches
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
 
-        modListManager = modList.AddComponent<ModMenuManager>();
+        modList.AddComponent<ModMenuManager>();
     }
 }

@@ -1,0 +1,36 @@
+﻿using BloomEngine.Menu;
+using BloomEngine.Menu.Config;
+using BloomEngine.Utilities;
+using HarmonyLib;
+using Il2CppReloaded.UI;
+using Il2CppTekly.PanelViews;
+using UnityEngine;
+
+namespace PvZEnhanced.Patches;
+
+[HarmonyPatch(typeof(MainMenuPanelView))]
+static internal class MainMenuPatch
+{
+    [HarmonyPatch(nameof(MainMenuPanelView.Start))]
+    [HarmonyPostfix]
+    private static void MainMenuStartPostfix(MainMenuPanelView __instance)
+    {
+        UIHelper.Initialize(__instance);
+        CreateConfigPanels(__instance.transform.GetComponentInParent<PanelViewContainer>());
+    }
+
+    private static void CreateConfigPanels(PanelViewContainer container)
+    {
+        var quitPanel = container.m_panels.FirstOrDefault(p => p.m_id == "quit");
+
+        foreach (var mod in ModMenu.Mods)
+        {
+            if (mod is not null && mod.Config is not null && !mod.Config.Properties.IsNullOrEmpty())
+            {
+                var panel = GameObject.Instantiate(quitPanel.gameObject, container.transform);
+                var config = new ConfigPanel(panel.GetComponent<PanelView>(), mod);
+                ModMenu.RegisterConfigPanel(config);
+            }
+        }
+    }
+}

@@ -1,6 +1,7 @@
 ﻿using Il2CppReloaded.Input;
 using Il2CppReloaded.UI;
 using Il2CppTekly.DataModels.Binders;
+using Il2CppTekly.Localizations;
 using Il2CppTMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -39,6 +40,9 @@ public static class UIHelper
         obj.name = name;
 
         GameObject.Destroy(obj.GetComponent<InputBinder>());
+
+        foreach (var local in obj.GetComponentsInChildren<TextLocalizer>())
+            GameObject.Destroy(local);
 
         if (placeholder is null)
             obj.transform.Find("Text Area").Find("Placeholder").gameObject.SetActive(false);
