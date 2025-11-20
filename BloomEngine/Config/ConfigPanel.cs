@@ -59,7 +59,7 @@ public class ConfigPanel
 
         // Destroy all localisers
         foreach (var localiser in panelView.GetComponentsInChildren<TextLocalizer>(true))
-            UnityEngine.Object.Destroy(localiser);
+            GameObject.Destroy(localiser);
     }
 
     /// <summary>
@@ -113,8 +113,8 @@ public class ConfigPanel
         button.GetComponentInChildren<TextMeshProUGUI>().SetText("Apply");
 
         // Remove garbage components
-        UnityEngine.Object.Destroy(button.GetComponent<Il2CppReloaded.ExitGame>());
-        UnityEngine.Object.Destroy(button.GetComponent<TextLocalizer>());
+        GameObject.Destroy(button.GetComponent<Il2CppReloaded.ExitGame>());
+        GameObject.Destroy(button.GetComponent<TextLocalizer>());
 
         // Apply all input fields on click
         button.onClick.RemoveAllListeners();
