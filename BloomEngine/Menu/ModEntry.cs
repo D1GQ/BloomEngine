@@ -6,7 +6,6 @@ namespace BloomEngine.Menu;
 
 public class ModEntry
 {
-    public string Id { get; private set; }
     public string DisplayName { get; private set; }
     public string Description { get; private set; }
 
@@ -15,11 +14,10 @@ public class ModEntry
 
     public ModConfigBase Config { get; private set; }
 
-    public ModEntry(MelonMod mod, string id, string displayName = null)
+    internal ModEntry(MelonMod mod, string displayName)
     {
         Mod = mod;
-        Id = id;
-        DisplayName = displayName ?? mod.Info.Name;
+        DisplayName = displayName;
     }
 
     public ModEntry AddDescription(string description)

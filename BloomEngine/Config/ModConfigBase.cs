@@ -6,7 +6,7 @@ namespace BloomEngine.Config;
 
 public class ModConfigBase
 {
-    private List<IConfigProperty> properties = new List<IConfigProperty>();
+    private readonly List<IConfigProperty> properties = new List<IConfigProperty>();
     public ReadOnlyCollection<IConfigProperty> Properties => properties.AsReadOnly();
 
     public ConfigProperty<T> AddProperty<T>(string name, T defaultValue, Action<T> onValueUpdated = null, Func<T, bool> validateFunc = null, Func<T, T> transformFunc = null)

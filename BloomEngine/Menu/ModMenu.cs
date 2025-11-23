@@ -13,9 +13,9 @@ public static class ModMenu
     private static ConfigPanel currentConfigPanel = null;
 
     /// <summary>
-    /// A read-only dictionary of all registered mods in the Mod Menu, indexed by their ID.
+    /// A read-only dictionary of all registered mod entries in the Mod Menu, indexed by their mod name.
     /// </summary>
-    public static ReadOnlyCollection<ModEntry> Mods => new ReadOnlyCollection<ModEntry>(mods.Values.ToArray());
+    public static ReadOnlyDictionary<string, ModEntry> Mods => new ReadOnlyDictionary<string, ModEntry>(mods);
 
     /// <summary>
     /// A read-only dictionary that maps mod entries to their corresponding configuration panels, if registered.
@@ -27,8 +27,8 @@ public static class ModMenu
     /// </summary>
     public static event Action<ModEntry> OnModRegistered;
 
-    public static ModEntry NewEntry(MelonMod mod, string id, string displayName = default)
-        => new ModEntry(mod, id, displayName);
+    public static ModEntry NewEntry(MelonMod mod, string displayName = null)
+        => new ModEntry(mod, displayName ?? mod.Info.Name);
 
     internal static void RegisterConfigPanel(ConfigPanel panel) => configPanels[panel.Mod] = panel;
 
@@ -59,7 +59,7 @@ public static class ModMenu
     /// </summary>
     internal static void Register(ModEntry entry)
     {
-        mods[entry.Id] = entry;
+        mods[entry.Mod.Info.Name] = entry;
 
         if (OnModRegistered is not null)
             OnModRegistered.Invoke(entry);

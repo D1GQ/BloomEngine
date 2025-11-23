@@ -23,14 +23,12 @@ static internal class MainMenuPatch
     {
         var template = container.m_panels.FirstOrDefault(p => p.m_id == "quit");
 
-        foreach (var mod in ModMenu.Mods)
+        // Create a config panel for each mod that has a config
+        foreach (var mod in ModMenu.Mods.Values.Where(mod => mod is not null && mod.Config is not null && !mod.Config.Properties.IsNullOrEmpty()))
         {
-            if (mod is not null && mod.Config is not null && !mod.Config.Properties.IsNullOrEmpty())
-            {
-                var panel = GameObject.Instantiate(template.gameObject, container.transform);
-                var config = new ConfigPanel(panel.GetComponent<PanelView>(), mod);
-                ModMenu.RegisterConfigPanel(config);
-            }
+            var panel = GameObject.Instantiate(template.gameObject, container.transform);
+            var config = new ConfigPanel(panel.GetComponent<PanelView>(), mod);
+            ModMenu.RegisterConfigPanel(config);
         }
     }
 }

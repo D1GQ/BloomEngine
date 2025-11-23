@@ -15,10 +15,10 @@ public class ConfigPanel
 {
     public ModEntry Mod { get; set; }
 
-    private Dictionary<IConfigProperty, GameObject> inputFields = new Dictionary<IConfigProperty, GameObject>();
+    private readonly Dictionary<IConfigProperty, GameObject> inputFields = new Dictionary<IConfigProperty, GameObject>();
 
-    private PanelView panelView;
-    private Transform window;
+    private readonly PanelView panelView;
+    private readonly Transform window;
 
     private RectTransform labelColumn;
     private RectTransform fieldColumn;
@@ -34,7 +34,7 @@ public class ConfigPanel
         Mod = mod;
 
         panelView = panel;
-        panelView.m_id = $"modConfig_{mod.Id}";
+        panelView.m_id = $"modConfig_{mod.Mod.Info.Name}";
         panelView.gameObject.name = $"P_ModConfig_{mod.DisplayName.Replace(" ", "")}";
 
         window = panelView.transform.Find("Canvas/Layout/Center/Window");
@@ -85,27 +85,6 @@ public class ConfigPanel
         panelView.gameObject.SetActive(false);
     }
 
-
-    private void ApplyInputField(ReloadedInputField field, IConfigProperty property)
-    {
-        // Filter input value
-        object value = null;
-        if (TypeHelper.IsNumericType(property.ValueType))
-            value = TextHelper.ValidateNumericInput(field.m_Text, property.ValueType);
-        else if (property.ValueType == typeof(string))
-            value = field.m_Text;
-
-        // Transform value
-        value = property.TransformValue(value);
-
-        // Validate and apply value
-        if (!property.ValidateValue(value))
-            value = property.GetValue();
-        else property.SetValue(Convert.ChangeType(value, property.ValueType));
-
-        field.text = value.ToString();
-    }
-
     private void SetupApplyButton(Button button)
     {
         // Update name and text
@@ -129,7 +108,7 @@ public class ConfigPanel
         }));
     }
 
-    private void SetupCancelButton(Button button)
+    private static void SetupCancelButton(Button button)
     {
         // Update name and text
         button.name = "P_ConfigButton_Cancel";
@@ -162,7 +141,7 @@ public class ConfigPanel
         fieldColumn = CreateColumn(layoutTransform);
     }
 
-    private RectTransform CreateColumn(RectTransform parent)
+    private static RectTransform CreateColumn(RectTransform parent)
     {
         GameObject column = new GameObject("Column");
         var rect = column.AddComponent<RectTransform>();
@@ -173,11 +152,16 @@ public class ConfigPanel
         layout.childControlWidth = true;
         layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = true;
+
+        // Each column takes up half the available width
+        var layoutElement = rect.gameObject.AddComponent<LayoutElement>();
+        layoutElement.flexibleWidth = 1;
 
         return rect;
     }
 
-    private GameObject CreateInputLabel(IConfigProperty property, RectTransform parent)
+    private void CreateInputLabel(IConfigProperty property, RectTransform parent)
     {
         GameObject obj = UnityEngine.Object.Instantiate(window.Find("SubheadingText").gameObject, parent);
         obj.name = $"PropertyLabel_{property.Name}";
@@ -187,11 +171,9 @@ public class ConfigPanel
         text.text = property.Name;
         text.overflowMode = TextOverflowModes.Ellipsis;
         text.alignment = TextAlignmentOptions.Left;
-
-        return obj;
     }
 
-    private GameObject CreateInputField(IConfigProperty property, RectTransform parent)
+    private static GameObject CreateInputField(IConfigProperty property, RectTransform parent)
     {
         GameObject inputObj = null;
         string name = $"PropertyInput_{property.Name}";
@@ -216,5 +198,25 @@ public class ConfigPanel
         }
 
         return inputObj;
+    }
+
+    private static void ApplyInputField(ReloadedInputField field, IConfigProperty property)
+    {
+        // Filter input value
+        object value = null;
+        if (TypeHelper.IsNumericType(property.ValueType))
+            value = TextHelper.ValidateNumericInput(field.m_Text, property.ValueType);
+        else if (property.ValueType == typeof(string))
+            value = field.m_Text;
+
+        // Transform value
+        value = property.TransformValue(value);
+
+        // Validate and apply value
+        if (!property.ValidateValue(value))
+            value = property.GetValue();
+        else property.SetValue(Convert.ChangeType(value, property.ValueType));
+
+        field.text = value.ToString();
     }
 }

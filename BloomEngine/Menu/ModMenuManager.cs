@@ -57,16 +57,13 @@ internal class ModMenuManager : MonoBehaviour
             obj.SetActive(true);
             obj.name = $"ModEntry_{mod.Info.Name}";
 
-            ModEntry entry = ModMenu.Mods.FirstOrDefault(e => e.Mod == mod);
             string name = mod.Info.Name;
             string description = $"{mod.Info.Author}\n{mod.Info.Version}";
 
-            if (entry is not null)
+            if (ModMenu.Mods.TryGetValue(mod.Info.Name, out ModEntry entry))
             {
                 name = entry.DisplayName;
-
-                if (!string.IsNullOrWhiteSpace(entry.Description))
-                    description = entry.Description;
+                description = entry.Description ?? description;
 
                 // Create a button for the mod's config panel if it has one
                 if (entry.Config is not null)
