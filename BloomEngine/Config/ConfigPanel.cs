@@ -37,8 +37,14 @@ public class ConfigPanel
         panelView.m_id = $"modConfig_{mod.Mod.Info.Name}";
         panelView.gameObject.name = $"P_ModConfig_{mod.DisplayName.Replace(" ", "")}";
 
+        // Resize window
         window = panelView.transform.Find("Canvas/Layout/Center/Window");
-        window.GetComponent<RectTransform>().sizeDelta = new Vector2(2200, 0);
+        var windowRect = window.GetComponent<RectTransform>();
+        windowRect.sizeDelta = new Vector2(2200, 0);
+        windowRect.anchoredPosition = new Vector2(0, -80);
+
+        // Add background click blocker
+        GameObject.Instantiate(UIHelper.MainMenu.transform.parent.Find("P_UsersPanel/Canvas/P_Scrim").gameObject, window.parent).transform.SetAsFirstSibling();
 
         // Setup panel buttons
         var buttons = window.Find("Buttons").GetComponentsInChildren<Button>();

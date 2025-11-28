@@ -3,7 +3,6 @@ using Il2CppReloaded.UI;
 using Il2CppTekly.DataModels.Binders;
 using Il2CppTekly.Localizations;
 using Il2CppTMPro;
-using MelonLoader;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -12,12 +11,14 @@ namespace BloomEngine.Utilities;
 public static class UIHelper
 {
     public static MainMenuPanelView MainMenu { get; private set; }
-    public static TMP_FontAsset Font { get; private set; }
+    public static TMP_FontAsset Font1 { get; private set; }
+    public static TMP_FontAsset Font2 { get; private set; }
 
     internal static void Initialize(MainMenuPanelView mainMenu)
     {
         MainMenu = mainMenu;
-        Font = MainMenu.transform.FindComponent<TextMeshProUGUI>("Canvas/Layout/Center/Main/AccountSign/SignTop/NameLabel").font;
+        Font1 = MainMenu.transform.FindComponent<TextMeshProUGUI>("Canvas/Layout/Center/Main/AccountSign/SignTop/NameLabel").font;
+        Font2 = MainMenu.transform.parent.FindComponent<TextMeshProUGUI>("P_HelpPanel/Canvas/Layout/Center/PageCount/PageLabel").font;
     }
 
     public static GameObject CreateButton(string name, Transform parent, string text, Action onClick)
@@ -55,7 +56,7 @@ public static class UIHelper
         ReloadedInputField field = obj.GetComponent<ReloadedInputField>();
         field.onValueChanged.RemoveAllListeners();
         field.onValueChanged.AddListener((Action<string>)(text => onTextChanged?.Invoke(field)));
-
+        
         field.onDeselect.RemoveAllListeners();
         field.onDeselect.AddListener((Action<string>)(text => onDeselect?.Invoke(field)));
         field.onSubmit.RemoveAllListeners();
