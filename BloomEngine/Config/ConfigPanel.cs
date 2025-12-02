@@ -6,6 +6,7 @@ using Il2CppTekly.PanelViews;
 using Il2CppTMPro;
 using MelonLoader;
 using System.Linq;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -22,8 +23,9 @@ public class ConfigPanel
     private readonly Dictionary<IConfigProperty, GameObject> inputFields = new Dictionary<IConfigProperty, GameObject>();
 
     private readonly PanelView panelView;
-    private readonly Transform window;
+    private readonly RectTransform window;
 
+    private RectTransform pageControlsRect;
     private GameObject pageCountLabel;
     private GameObject pageBackButton;
     private GameObject pageNextButton;
@@ -44,12 +46,19 @@ public class ConfigPanel
         panelView = panel;
         panelView.m_id = $"modConfig_{mod.Mod.Info.Name}";
         panelView.gameObject.name = $"P_ModConfig_{mod.DisplayName.Replace(" ", "")}";
+        window = panelView.transform.Find("Canvas/Layout/Center/Window").GetComponent<RectTransform>();
 
-        // Resize window
-        window = panelView.transform.Find("Canvas/Layout/Center/Window");
-        var windowRect = window.GetComponent<RectTransform>();
-        windowRect.sizeDelta = new Vector2(2200, 0);
-        windowRect.anchoredPosition = new Vector2(0, -80);
+        // Split properties into pages
+        totalPageCount = (int)Math.Ceiling((double)mod.Config.Properties.Count / PropertiesPerPage);
+
+        // Adjust size if there are multiple pages, but change width anyway
+        if (totalPageCount > 1)
+        {
+            GameObject.Destroy(window.GetComponent<ContentSizeFitter>());
+            window.sizeDelta = new Vector2(2500, 1900);
+            window.anchoredPosition = new Vector2(0, -80);
+        }
+        else window.sizeDelta = new Vector2(2500, 0);
 
         // Add background click blocker
         GameObject.Instantiate(UIHelper.MainMenu.transform.parent.Find("P_UsersPanel/Canvas/P_Scrim").gameObject, window.parent).transform.SetAsFirstSibling();
@@ -59,18 +68,23 @@ public class ConfigPanel
         SetupApplyButton(buttons[0]);
         SetupCancelButton(buttons[1]);
 
-        // Change header text
-        window.Find("HeaderText").GetComponent<TextMeshProUGUI>().text = $"{mod.DisplayName}";
-        window.Find("SubheadingText").GetComponent<TextMeshProUGUI>().text = " ";
+        // Change header text and sizing options
+        var header = window.Find("HeaderText").GetComponent<TextMeshProUGUI>();
+        header.text = $"{mod.DisplayName} Config";
+        header.enableAutoSizing = false;
 
-        // Split properties into pages
-        totalPageCount = (int)Math.Ceiling((double)mod.Config.Properties.Count / PropertiesPerPage);
-        var pagesData = mod.Config.Properties.Chunk(PropertiesPerPage).ToList();
+        var headerRect = header.GetComponent<RectTransform>();
+        var headerLayout = header.gameObject.GetComponent<LayoutElement>();
+        headerLayout.preferredWidth = headerRect.sizeDelta.x;
+        headerLayout.preferredHeight = headerRect.sizeDelta.y;
+
+        GameObject.Destroy(window.Find("SubheadingText").gameObject);
 
         // Create inputs for each property on each page
+        var pagesData = mod.Config.Properties.Chunk(PropertiesPerPage).ToList();
         for (int i = 0; i < pagesData.Count; i++)
         {
-            var page = CreateLayout(window.GetComponent<RectTransform>(), $"LayoutPage_{i}");
+            var page = CreateLayout(window, $"LayoutPage_{i}");
             pages.Add(page);
 
             RectTransform labelColumn = page.GetChild(0).GetComponent<RectTransform>();
@@ -83,11 +97,14 @@ public class ConfigPanel
             }
         }
 
-        CreatePageControls(window.GetComponent<RectTransform>());
+        if (totalPageCount > 1)
+            CreatePageControls(window.parent.GetComponent<RectTransform>());
 
         // Destroy all localisers
         foreach (var localiser in panelView.GetComponentsInChildren<TextLocalizer>(true))
             GameObject.Destroy(localiser);
+
+        Melon<BloomEngineMod>.Logger.Msg($"Successfully created config panel for {mod.DisplayName} with {mod.Config.Properties.Count} properties across {totalPageCount} page{(totalPageCount > 1 ? "s" : "")}.");
     }
 
     /// <summary>
@@ -105,7 +122,11 @@ public class ConfigPanel
                 field.text = property.GetValue().ToString();
         }
 
+        SetPageIndex(0);
         panelView.gameObject.SetActive(true);
+        
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(pageControlsRect);
     }
 
     public void HidePanel()
@@ -152,22 +173,27 @@ public class ConfigPanel
 
     private void CreatePageControls(RectTransform parent)
     {
-        if(Mod.Config.Properties.Count <= PropertiesPerPage)
-            return;
-
         var pageControls = new GameObject("PageControls");
-        var pageControlsRect = pageControls.AddComponent<RectTransform>();
+        pageControlsRect = pageControls.AddComponent<RectTransform>();
         pageControlsRect.SetParent(parent);
+
+        pageControlsRect.anchorMin = new Vector2(0.5f, 0);
+        pageControlsRect.anchorMax = new Vector2(0.5f, 0);
+        pageControlsRect.pivot = new Vector2(0.5f, 0.5f);
+        pageControlsRect.anchoredPosition = new Vector2(-420, 510);
 
         var horizontalLayout = pageControls.AddComponent<HorizontalLayoutGroup>();
         horizontalLayout.childAlignment = TextAnchor.MiddleCenter;
+        horizontalLayout.spacing = 100;
+        horizontalLayout.childControlHeight = false;
+        horizontalLayout.childControlWidth = false;
+        horizontalLayout.childForceExpandWidth = false;
+        horizontalLayout.childForceExpandHeight = false;
 
         // Create previous page button
         pageBackButton = GameObject.Instantiate(UIHelper.MainMenu.transform.parent.FindChild("P_HelpPanel/Canvas/Layout/Center/Arrows/NavArrow_Back").gameObject, pageControlsRect);
-        pageBackButton.AddComponent<LayoutElement>().preferredHeight = 200;
-        var backAspect = pageBackButton.AddComponent<AspectRatioFitter>();
-        backAspect.aspectMode = AspectRatioFitter.AspectMode.HeightControlsWidth;
-        backAspect.aspectRatio = pageBackButton.GetComponent<RectTransform>().sizeDelta.x / pageBackButton.GetComponent<RectTransform>().sizeDelta.y;
+        GameObject.Destroy(pageBackButton.GetComponent<NavigationCheck>());
+        pageBackButton.GetComponent<RectTransform>().sizeDelta = new Vector2(220, 200);
         var backButton = pageBackButton.GetComponent<Button>();
         backButton.onClick.RemoveAllListeners();
         backButton.onClick.AddListener((UnityAction)(() => SetPageIndex(pageIndex - 1)));
@@ -177,10 +203,8 @@ public class ConfigPanel
 
         // Create next page button
         pageNextButton = GameObject.Instantiate(UIHelper.MainMenu.transform.parent.FindChild("P_HelpPanel/Canvas/Layout/Center/Arrows/NavArrow_Next").gameObject, pageControlsRect);
-        pageNextButton.AddComponent<LayoutElement>().preferredHeight = 200;
-        var nextAspect = pageNextButton.AddComponent<AspectRatioFitter>();
-        nextAspect.aspectMode = AspectRatioFitter.AspectMode.HeightControlsWidth;
-        nextAspect.aspectRatio = pageNextButton.GetComponent<RectTransform>().sizeDelta.x / pageNextButton.GetComponent<RectTransform>().sizeDelta.y;
+        GameObject.Destroy(pageNextButton.GetComponent<NavigationCheck>());
+        pageNextButton.GetComponent<RectTransform>().sizeDelta = new Vector2(220, 200);
         var nextButton = pageNextButton.GetComponent<Button>();
         nextButton.onClick.RemoveAllListeners();
         nextButton.onClick.AddListener((UnityAction)(() => SetPageIndex(pageIndex + 1)));
@@ -190,22 +214,23 @@ public class ConfigPanel
 
     private void SetPageIndex(int index)
     {
-        if (Mod.Config.Properties.Count <= PropertiesPerPage)
+        if (totalPageCount == 1)
             return;
 
+        // Clamp and update page index and label
         pageIndex = Mathf.Clamp(index, 0, totalPageCount - 1);
         pageCountLabel.transform.FindChild("Count").GetComponent<TextMeshProUGUI>().text = $"{pageIndex + 1}/{totalPageCount}";
 
+        // Active the correct page
         for (int i = 0; i < pages.Count; i++)
             pages[i].gameObject.SetActive(i == index);
 
+        // Update button interactability
         pageBackButton.GetComponent<Button>().interactable = pageIndex > 0;
-        //pageNextButton.GetComponentInChildren<Image>().
-
         pageNextButton.GetComponent<Button>().interactable = pageIndex < totalPageCount - 1;
     }
 
-    private static RectTransform CreateLayout(RectTransform parent, string name)
+    private RectTransform CreateLayout(RectTransform parent, string name)
     {
         GameObject layoutObj = new GameObject(name);
         var layoutTransform = layoutObj.AddComponent<RectTransform>();
@@ -226,7 +251,7 @@ public class ConfigPanel
         return layoutTransform;
     }
 
-    private static void CreateColumn(RectTransform parent, string name)
+    private void CreateColumn(RectTransform parent, string name)
     {
         GameObject column = new GameObject(name);
         var rect = column.AddComponent<RectTransform>();
@@ -237,11 +262,14 @@ public class ConfigPanel
         layout.childControlWidth = true;
         layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
-        layout.childForceExpandHeight = true;
-
-        // Each column takes up half the available width
-        var layoutElement = rect.gameObject.AddComponent<LayoutElement>();
-        layoutElement.flexibleWidth = 1;
+        layout.childForceExpandHeight = false;
+        
+        if(totalPageCount > 1)
+        {
+            var element = column.AddComponent<LayoutElement>();
+            element.preferredHeight = 2100;
+            element.preferredWidth = 998;
+        }
     }
 
     private void CreateInputLabel(IConfigProperty property, RectTransform parent)
@@ -250,10 +278,14 @@ public class ConfigPanel
         obj.name = $"PropertyLabel_{property.Name}";
         obj.SetActive(true);
 
+        var layout = obj.AddComponent<LayoutElement>();
+        layout.preferredHeight = 134;
+
         var text = obj.GetComponent<TextMeshProUGUI>();
         text.text = property.Name;
         text.overflowMode = TextOverflowModes.Ellipsis;
         text.alignment = TextAlignmentOptions.Left;
+        text.enabled = true;
     }
 
     private static GameObject CreateInputField(IConfigProperty property, RectTransform parent)
@@ -261,15 +293,9 @@ public class ConfigPanel
         GameObject inputObj = null;
         string name = $"PropertyInput_{property.Name}";
         string typeName = property.ValueType.Name;
-
-        // Basic string input
-        if (property.ValueType == typeof(string))
-        {
-            inputObj = UIHelper.CreateTextField(name, parent, typeName, onDeselect: field => ApplyInputField(field, property));
-            inputObj.GetComponent<ReloadedInputField>().m_Text = property.GetValue()?.ToString();
-        }
+        
         // Sanitised numeric input
-        else if (TypeHelper.IsNumericType(property.ValueType))
+        if (TypeHelper.IsNumericType(property.ValueType))
         {
             inputObj = UIHelper.CreateTextField(name, parent, typeName, onTextChanged: field =>
             {
@@ -279,6 +305,15 @@ public class ConfigPanel
 
             inputObj.GetComponent<ReloadedInputField>().m_Text = property.GetValue()?.ToString();
         }
+        // Basic string input is the default fallback
+        else
+        {
+            inputObj = UIHelper.CreateTextField(name, parent, typeName, onDeselect: field => ApplyInputField(field, property));
+            inputObj.GetComponent<ReloadedInputField>().m_Text = property.GetValue()?.ToString();
+        }
+
+        var layout = inputObj.AddComponent<LayoutElement>();
+        layout.preferredHeight = 134;
 
         return inputObj;
     }
