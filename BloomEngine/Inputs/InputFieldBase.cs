@@ -2,7 +2,8 @@
 
 public abstract class InputFieldBase<T> : IInputField<T>
 {
-    protected T Value
+    public Type ValueType => Value.GetType();
+    public T Value
     {
         get => field;
         set
@@ -12,15 +13,15 @@ public abstract class InputFieldBase<T> : IInputField<T>
         }
     }
 
+    public object InputObject { get; set; }
+    public Type InputObjectType => InputObject.GetType();
+
     public Action<T> OnValueChanged { get; set; }
     public Func<T, T> TransformValue { get; set; }
     public Func<T, bool> ValidateValue { get; set; }
 
-    //public T GetValue() => _value;
-    //public void SetValue(T value) => _value
-
-    //public object GetValueObject() => GetValue();
-    //public void SetValueObject(object value) => SetValue((T)Convert.ChangeType(value, typeof(T)));
+    public object GetValueObject() => Value;
+    public void SetValueObject(object value) => Value = (T)Convert.ChangeType(value, typeof(T));
 
     public abstract void UpdateValue();
     public abstract void RefreshUI();

@@ -2,10 +2,13 @@
 
 public interface IInputField
 {
-    //Type ValueType { get; }
+    Type ValueType { get; }
 
-    //object GetValueObject();
-    //void SetValueObject(object value);
+    object InputObject { get; set; }
+    Type InputObjectType { get; }
+
+    object GetValueObject();
+    void SetValueObject(object value);
 
     void UpdateValue();
     void RefreshUI();
@@ -18,8 +21,10 @@ public interface IInputField<T> : IInputField
     Func<T, T> TransformValue { get; set; }
     Func<T, bool> ValidateValue { get; set; }
 
-    //T GetValue();
-    //void SetValue(T value);
+    T Value { get; set; }
+
+    object GetValueObject();
+    void SetValueObject(object value);
 
     void UpdateValue();
     void RefreshUI();

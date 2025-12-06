@@ -5,7 +5,7 @@ namespace BloomEngine.Inputs;
 
 public class IntInputField : InputFieldBase<int>
 {
-    public ReloadedInputField Textbox { get; set; }
+    public ReloadedInputField Textbox => (ReloadedInputField) Convert.ChangeType(InputObject, InputObjectType);
 
     public override void UpdateValue() => Value = (int)TextHelper.ValidateNumericInput(Textbox.text, typeof(int));
     public override void RefreshUI() => Textbox.SetTextWithoutNotify(Value.ToString());

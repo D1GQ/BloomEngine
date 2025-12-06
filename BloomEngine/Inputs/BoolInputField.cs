@@ -4,7 +4,7 @@ namespace BloomEngine.Inputs;
 
 public class BoolInputField : InputFieldBase<bool>
 {
-    public Toggle Toggle { get; set; }
+    public Toggle Toggle => (Toggle)Convert.ChangeType(InputObject, InputObjectType);
 
     public override void UpdateValue() => Value = Toggle.isOn;
     public override void RefreshUI() => Toggle.SetIsOnWithoutNotify(Value);

@@ -4,22 +4,15 @@ namespace BloomEngine.Inputs;
 
 public class EnumInputField : InputFieldBase<Enum>
 {
-    public ReloadedDropdown Dropdown
-    {
-        get => field;
-        set
-        {
-            field = value;
-            values = Enum.GetValues(value.GetType()).Cast<Enum>().ToList();
-        }
-    }
+    public ReloadedDropdown Dropdown => (ReloadedDropdown)Convert.ChangeType(InputObject, InputObjectType);
 
-    private List<Enum> values;
-
-    public override void UpdateValue() => Value = values[Dropdown.value];
+    public override void UpdateValue() => Value = GetOptions()[Dropdown.value];
     public override void RefreshUI()
     {
-        Dropdown.SetValueWithoutNotify(values.IndexOf(Value));
+        Dropdown.SetValueWithoutNotify(GetOptions().IndexOf(Value));
         Dropdown.RefreshShownValue();
     }
+
+
+    private List<Enum> GetOptions() => Enum.GetValues(Value.GetType()).Cast<Enum>().ToList();
 }
