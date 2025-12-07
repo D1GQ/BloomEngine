@@ -35,13 +35,13 @@ public class ModEntry
         return this;
     }
 
-    public ModEntry AddConfig<T>()
+    public ModEntry AddConfig(Type staticConfig)
     {
-        ConfigClassType = typeof(T);
+        ConfigClassType = staticConfig;
         ConfigInputFields = new List<IInputField>();
 
         // Get all input field fields
-        var fields = typeof(T).GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var fields = staticConfig.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         foreach (var field in fields)
         {
             // Null instance for static class
@@ -50,22 +50,17 @@ public class ModEntry
         }
 
         // Get all input field properties
-        var properties = typeof(T).GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-        foreach (var prop in properties)
-        {
-            // Must be readable or skip
-            if (!prop.CanRead)
-                continue;
+        //var properties = staticConfig.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        //foreach (var prop in properties)
+        //{
+        //    // Must be readable or skip
+        //    if (!prop.CanRead)
+        //        continue;
 
-            // Protect from throwing in getter
-            try
-            {
-                // Null instance for static class
-                if (prop.GetValue(null) is IInputField inputField)
-                    ConfigInputFields.Add(inputField);
-            }
-            catch { continue; }
-        }
+        //    // Null instance for static class
+        //    if (prop.GetValue(null) is IInputField inputField)
+        //        ConfigInputFields.Add(inputField);
+        //}
 
         HasConfig = true;
         return this;

@@ -150,7 +150,7 @@ public static class UIHelper
         return obj;
     }
 
-    public static GameObject CreateSlider(string name, RectTransform parent, float minValue, float maxValue, float value = default, Action<float> onValueChanged = null)
+    public static GameObject CreateSlider(string name, RectTransform parent, float minValue, float maxValue, float value, Action<float> onValueChanged = null)
     {
         GameObject obj = GameObject.Instantiate(sliderTemplate, parent);
         obj.name = name;
@@ -162,10 +162,34 @@ public static class UIHelper
         Slider slider = obj.GetComponent<Slider>();
         slider.minValue = minValue;
         slider.maxValue = maxValue;
-        slider.SetValueWithoutNotify(value == default ? minValue : value);
+        slider.SetValueWithoutNotify(value);
 
         slider.onValueChanged = new();
         slider.onValueChanged.AddListener(val => onValueChanged?.Invoke(val));
+
+        // Modify anchor and pivot of slider rects to stretch horizontally
+        var handleArea = obj.transform.Find("Handle Slide Area").gameObject.GetComponent<RectTransform>();
+        if (handleArea)
+        {
+            handleArea.anchorMin = new Vector2(0f, handleArea.anchorMin.y);
+            handleArea.anchorMax = new Vector2(1f, handleArea.anchorMax.y);
+            handleArea.offsetMin = new Vector2(0f, handleArea.offsetMin.y);
+            handleArea.offsetMax = new Vector2(0f, handleArea.offsetMax.y);
+        }
+
+        handleArea.Find("Handle").GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
+
+        var background = obj.transform.Find("Background").gameObject.GetComponent<RectTransform>();
+        if (background)
+        {
+            background.anchorMin = new Vector2(0f, background.anchorMin.y);
+            background.anchorMax = new Vector2(1f, background.anchorMax.y);
+            background.offsetMin = new Vector2(0f, background.offsetMin.y);
+            background.offsetMax = new Vector2(0f, background.offsetMax.y);
+        }
+
+        // Force a layout rebuild so the UI updates
+        LayoutRebuilder.ForceRebuildLayoutImmediate(obj.GetComponent<RectTransform>());
 
         return obj;
     }

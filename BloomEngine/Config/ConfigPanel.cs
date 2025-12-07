@@ -166,7 +166,7 @@ internal class ConfigPanel
     private static GameObject CreateInput(IInputField field, RectTransform parent)
     {
         GameObject inputObj = null;
-        string name = $"InputField_{field.Name}";
+        string name = $"InputField_{field.Name.Replace(" ", "")}";
         
         // Create the correct input field
         if (field.InputObjectType == typeof(ReloadedInputField))
@@ -176,10 +176,11 @@ internal class ConfigPanel
         else if (field.InputObjectType == typeof(ReloadedDropdown))
             inputObj = UIHelper.CreateDropdown(name, parent, field.ValueType, onValueChanged: (_) => field.OnUIChanged());
         else if (field.InputObjectType == typeof(Slider) && field is FloatInputField sliderInput)
-            inputObj = UIHelper.CreateSlider(name, parent, sliderInput.MinValue, sliderInput.MaxValue, onValueChanged: (_) => field.OnUIChanged());
+            inputObj = UIHelper.CreateSlider(name, parent, sliderInput.MinValue, sliderInput.MaxValue, sliderInput.MinValue, onValueChanged: (_) => field.OnUIChanged());
 
         var layout = inputObj.AddComponent<LayoutElement>();
         layout.preferredHeight = 134;
+        layout.preferredWidth = 900;
 
         return inputObj;
     }
@@ -238,8 +239,11 @@ internal class ConfigPanel
         SetPageIndex(0);
         panel.SetActive(true);
 
-        Canvas.ForceUpdateCanvases();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(window);
+        if(PageCount > 1)
+        {
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(pageControlsRect);
+        }
     }
 
     /// <summary>
