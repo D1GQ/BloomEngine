@@ -23,7 +23,13 @@ internal class ModMenuManager : MonoBehaviour
         container = transform.parent.Find("ScrollView").Find("Viewport").Find("Content").Find("Achievements");
 
         CreateButtons();
-        CreateModsEntries();
+
+        // Prevent header from blocking clicks on mod entries
+        container.parent.FindComponent<Image>("Header/Shadow").raycastTarget = false;
+        container.parent.FindComponent<Image>("Header/Left/Background_grass02").raycastTarget = false;
+
+        foreach (var mod in MelonMod.RegisteredMelons)
+            CreateEntry(mod);
     }
 
 
@@ -48,40 +54,35 @@ internal class ModMenuManager : MonoBehaviour
         ui.m_backButton.onClick.AddListener((UnityAction)(() => ModMenuOpen = false));
     }
 
-    private void CreateModsEntries()
+    private void CreateEntry(MelonMod mod)
     {
-        // Prevent header from blocking clicks on modInfo registered buttons
-        container.parent.FindComponent<Image>("Header/Shadow").raycastTarget = false;
-        container.parent.FindComponent<Image>("Header/Left/Background_grass02").raycastTarget = false;
+        // Create a new mod achievement for this mod
+        GameObject modObj = GameObject.Instantiate(transform.parent.parent.Find("Achievements/AchievementItem").gameObject, container);
+        modObj.SetActive(true);
+        modObj.name = $"ModEntry_{mod.Info.Name}";
+        ModEntryObjects.Add(modObj);
 
-        foreach (var modInfo in MelonMod.RegisteredMelons.Select(m => m.Info))
+        string name = mod.Info.Name;
+        string description = $"{mod.Info.Author}\n{mod.Info.Version}";
+
+        // If the mod is registered in the ModMenu, use its display name and description
+        if (ModMenu.Mods.TryGetValue(mod.Info.Name, out ModEntry registered))
         {
-            // Create a new mod achievement for this mod
-            GameObject modObj = GameObject.Instantiate(transform.parent.parent.Find("Achievements/AchievementItem").gameObject, container);
-            modObj.SetActive(true);
-            modObj.name = $"ModEntry_{modInfo.Name}";
-            ModEntryObjects.Add(modObj);
+            name = registered.DisplayName;
+            description = registered.Description ?? description;
 
-            string name = modInfo.Name;
-            string description = $"{modInfo.Author}\n{modInfo.Version}";
-
-            // If the mod is registered in the ModMenu, use its display name and description
-            if (ModMenu.Mods.TryGetValue(modInfo.Name, out ModEntry registered))
+            // Create a button for the modInfo's config panel if it has one
+            if (registered.HasConfig)
             {
-                name = registered.DisplayName;
-                description = registered.Description ?? description;
-
-                // Create a button for the modInfo's config panel if it has one
-                if (registered.HasConfig)
-                {
-                    Button configButton = modObj.transform.Find("Icon").gameObject.AddComponent<Button>();
-                    configButton.onClick.AddListener(() => ModMenu.ShowConfigPanel(registered));
-                }
+                Button configButton = modObj.transform.Find("Icon").gameObject.AddComponent<Button>();
+                configButton.onClick.AddListener(() => ModMenu.ShowConfigPanel(registered));
             }
-
-            modObj.FindComponent<TextMeshProUGUI>("Title").text = name;
-            modObj.FindComponent<TextMeshProUGUI>("Subheader").text = description;
         }
+        // If it isn't registered, make its heading yellow
+        else modObj.FindComponent<TextMeshProUGUI>("Title").color = new Color(1f, 0.6f, 0.1f, 1f);
+
+        modObj.FindComponent<TextMeshProUGUI>("Title").text = name;
+        modObj.FindComponent<TextMeshProUGUI>("Subheader").text = description;
     }
 
     /// <summary>
