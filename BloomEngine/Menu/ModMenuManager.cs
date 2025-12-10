@@ -66,7 +66,7 @@ internal class ModMenuManager : MonoBehaviour
         string description = $"{mod.Info.Author}\n{mod.Info.Version}";
 
         // If the mod is registered in the ModMenu, use its display name and description
-        if (ModMenu.Mods.TryGetValue(mod.Info.Name, out ModEntry registered))
+        if (ModMenu.Entries.TryGetValue(mod, out ModEntry registered))
         {
             name = registered.DisplayName;
             description = registered.Description ?? description;

@@ -7,11 +7,13 @@ using Il2CppTekly.DataModels.Binders;
 using Il2CppTekly.Localizations;
 using Il2CppTMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace BloomEngine.Utilities;
 
+/// <summary>
+/// Static helper class that provides methods for creating UI elements.
+/// </summary>
 public static class UIHelper
 {
     public static MainMenuPanelView MainMenu { get; private set; }
@@ -39,25 +41,14 @@ public static class UIHelper
         sliderTemplate = optionsPanelContent.Find("Music/MusicP_Slider").gameObject;
     }
 
-    public static GameObject CreateButton(string name, Transform parent, string text, Action onClick)
-    {
-        GameObject button = GameObject.Instantiate(buttonTemplate, parent);
-        UIHelper.ModifyButton(button, name, text, onClick);
-
-        RectTransform rect = button.GetComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(500f, rect.sizeDelta.y);
-
-        return button;
-    }
-
-    public static GameObject ModifyButton(GameObject buttonObj, string newName, string newText, Action onClick)
+    internal static GameObject ModifyButton(GameObject buttonObj, string newName, string newText, Action onClick)
     {
         // Update name and text
         buttonObj.name = newName;
         buttonObj.GetComponentInChildren<TextMeshProUGUI>().SetText(newText);
 
         // Remove garbage components
-        if(buttonObj.TryGetComponent<ExitGame>(out var exit))
+        if (buttonObj.TryGetComponent<ExitGame>(out var exit))
             GameObject.Destroy(exit);
         if (buttonObj.TryGetComponent<TextLocalizer>(out var localiser))
             GameObject.Destroy(localiser);
@@ -72,6 +63,17 @@ public static class UIHelper
         button.onClick.AddListener(onClick);
 
         return buttonObj;
+    }
+
+    public static GameObject CreateButton(string name, Transform parent, string text, Action onClick)
+    {
+        GameObject button = GameObject.Instantiate(buttonTemplate, parent);
+        UIHelper.ModifyButton(button, name, text, onClick);
+
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.sizeDelta = new Vector2(500f, rect.sizeDelta.y);
+
+        return button;
     }
 
 

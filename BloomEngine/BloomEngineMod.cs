@@ -1,8 +1,7 @@
 ﻿using BloomEngine;
-using Il2CppInterop.Runtime.Injection;
+using BloomEngine.Utilities;
 using MelonLoader;
 using System.Runtime.InteropServices;
-using UnityEngine;
 
 [assembly: MelonInfo(typeof(BloomEngineMod), BloomEngineMod.Name, BloomEngineMod.Version, BloomEngineMod.Author)]
 [assembly: MelonGame("PopCap Games", "PvZ Replanted")]
@@ -10,35 +9,16 @@ using UnityEngine;
 
 namespace BloomEngine;
 
-public class BloomEngineMod : MelonMod
+internal class BloomEngineMod : MelonMod
 {
     public const string Name = "BloomEngine";
-    public const string Version = "1.0.0";
+    public const string Version = "v0.1.0-alpha";
     public const string Author = "PalmForest";
     public const string Id = "com.palmforest.bloomengine";
 
     public override void OnInitializeMelon()
     {
         LoggerInstance.Msg($"Successfully initialised {nameof(BloomEngine)}.");
-        RegisterAllMonoBehaviours();
-    }
-
-    private void RegisterAllMonoBehaviours()
-    {
-        var monoBehaviourTypes = MelonAssembly.Assembly.GetTypes()
-            .Where(type => type.IsSubclassOf(typeof(MonoBehaviour)) && !type.IsAbstract)
-            .OrderBy(type => type.Name);
-
-        foreach (var type in monoBehaviourTypes)
-        {
-            try
-            {
-                ClassInjector.RegisterTypeInIl2Cpp(type);
-            }
-            catch (Exception e)
-            {
-                MelonLogger.Error($"Failed to register MonoBehaviour: {type.FullName}\n{e}");
-            }
-        }
+        Il2CppHelper.RegisterAllMonoBehaviours(MelonAssembly.Assembly);
     }
 }

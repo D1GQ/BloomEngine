@@ -6,24 +6,41 @@ using UnityEngine;
 
 namespace BloomEngine.Menu;
 
+/// <summary>
+/// A static class responsible for registering mod entries and adding them to the mod menu.
+/// </summary>
 public static class ModMenu
 {
-    private static ConcurrentDictionary<string, ModEntry> mods = new ConcurrentDictionary<string, ModEntry>();
+    private static ConcurrentDictionary<MelonMod, ModEntry> entries = new ConcurrentDictionary<MelonMod, ModEntry>();
     private static Dictionary<ModEntry, ConfigPanel> configs = new Dictionary<ModEntry, ConfigPanel>();
     private static ConfigPanel currentConfigPanel = null;
 
     /// <summary>
-    /// A read-only dictionary of all registered mod entries in the Mod Menu, indexed by their mod name.
+    /// A read-only dictionary of all registered mod entries in the Mod Menu, indexed by their associated MelonMod.
     /// </summary>
-    public static ReadOnlyDictionary<string, ModEntry> Mods => new ReadOnlyDictionary<string, ModEntry>(mods);
+    public static ReadOnlyDictionary<MelonMod, ModEntry> Entries => new ReadOnlyDictionary<MelonMod, ModEntry>(entries);
 
     /// <summary>
     /// Event invoked when a mod is registered to the Mod Menu
     /// </summary>
     public static event Action<ModEntry> OnModRegistered;
 
-    public static ModEntry NewEntry(MelonMod mod, string displayName = null)
-        => new ModEntry(mod, displayName ?? mod.Info.Name);
+    /// <summary>
+    /// Creates a new mod entry which can be customised and added with <see cref="ModEntry.Register"/>.
+    /// </summary>
+    /// <param name="mod">The mod this entry belongs to.</param>
+    /// <param name="displayName"></param>
+    /// <returns></returns>
+    public static ModEntry CreateEntry(MelonMod mod)
+    {
+        if(entries.ContainsKey(mod))
+        {
+            Log($"Cannot create an entry for the mod {mod.Info.Name} since one has already been created.");
+            return null;
+        }
+
+        return new ModEntry(mod);
+    }
 
     internal static void RegisterConfigPanel(ConfigPanel panel) => configs[panel.Mod] = panel;
 
@@ -54,7 +71,7 @@ public static class ModMenu
     /// </summary>
     internal static void Register(ModEntry entry)
     {
-        mods[entry.Mod.Info.Name] = entry;
+        entries[entry.Mod] = entry;
 
         if (OnModRegistered is not null)
             OnModRegistered.Invoke(entry);
