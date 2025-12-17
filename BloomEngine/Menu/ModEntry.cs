@@ -17,12 +17,12 @@ public class ModEntry(MelonMod mod)
     /// <summary>
     /// The display name that shows up in the mod menu for this entry.
     /// </summary>
-    public string DisplayName { get; private set; }
+    public string DisplayName { get; private set; } = mod.Info.Name;
 
     /// <summary>
     /// The description that shows up under the mod name in the mod menu.
     /// </summary>
-    public string Description { get; private set; }
+    public string Description { get; private set; } = $"{mod.Info.Author}\n{mod.Info.Version}";
 
     // TODO: Add the required functionality and uncomment this property, adding documentation
     //public Texture2D Icon { get; private set; }
@@ -39,7 +39,6 @@ public class ModEntry(MelonMod mod)
     /// Gets a value indicating whether this mod has a registered config.
     /// </summary>
     public bool HasConfig { get; private set; }
-
 
     /// <summary>
     /// Adds a custom display name that will replace this entry's mod name in the mod menu.

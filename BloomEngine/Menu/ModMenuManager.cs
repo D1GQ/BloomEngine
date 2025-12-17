@@ -62,15 +62,9 @@ internal class ModMenuManager : MonoBehaviour
             modObj.name = $"ModEntry_{mod.Info.Name}";
             entryObjects.Add(modObj);
 
-            string name = mod.Info.Name;
-            string description = $"{mod.Info.Author}\n{mod.Info.Version}";
-
             // If the mod is registered in the ModMenu, use its display name and description
             if (ModMenu.Entries.TryGetValue(mod, out ModEntry registered))
             {
-                name = registered.DisplayName;
-                description = registered.Description ?? description;
-
                 // Create a button for the modInfo's config panel if it has one
                 if (registered.HasConfig)
                 {
@@ -88,8 +82,8 @@ internal class ModMenuManager : MonoBehaviour
             // If it isn't registered, make its heading yellow
             else modObj.FindComponent<TextMeshProUGUI>("Title").color = new Color(1f, 0.6f, 0.1f, 1f);
 
-            modObj.FindComponent<TextMeshProUGUI>("Title").text = name;
-            modObj.FindComponent<TextMeshProUGUI>("Subheader").text = description;
+            modObj.FindComponent<TextMeshProUGUI>("Title").text = registered is not null ? registered.DisplayName : mod.Info.Name;
+            modObj.FindComponent<TextMeshProUGUI>("Subheader").text = registered is not null ? registered.Description : $"{mod.Info.Author}\n{mod.Info.Version}";
         }
     }
 
