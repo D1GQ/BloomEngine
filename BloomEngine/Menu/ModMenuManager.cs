@@ -76,6 +76,13 @@ internal class ModMenuManager : MonoBehaviour
                 {
                     Button configButton = modObj.transform.Find("Icon").gameObject.AddComponent<Button>();
                     configButton.onClick.AddListener(() => ModMenu.ShowConfigPanel(registered));
+
+                    var colors = configButton.colors;
+                    colors.normalColor = Color.white;
+                    colors.highlightedColor = new Color(0.75f, 0.75f, 0.75f, 1f);
+                    colors.fadeDuration = 0.1f;
+
+                    configButton.colors = colors;
                 }
             }
             // If it isn't registered, make its heading yellow
