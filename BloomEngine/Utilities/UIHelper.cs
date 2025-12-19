@@ -6,6 +6,8 @@ using Il2CppSource.UI;
 using Il2CppTekly.DataModels.Binders;
 using Il2CppTekly.Localizations;
 using Il2CppTMPro;
+using MelonLoader;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +18,8 @@ namespace BloomEngine.Utilities;
 /// </summary>
 public static class UIHelper
 {
+    private static readonly Dictionary<RectTransform, object> fadeCoroutines = new();
+
     public static MainMenuPanelView MainMenu { get; private set; }
     public static TMP_FontAsset Font1 { get; private set; }
     public static TMP_FontAsset Font2 { get; private set; }
@@ -63,6 +67,41 @@ public static class UIHelper
         button.onClick.AddListener(onClick);
 
         return buttonObj;
+    }
+
+    /// <summary>
+    /// Starts a coroutine to fade the alpha of a UI element over time.
+    /// Calling this method again on the same UI element will stop previous fade coroutines.
+    /// </summary>
+    /// <param name="uiRect">The UI element to apply the fade to.</param>
+    /// <param name="target">Target alpha value by the end of the fade.</param>
+    /// <param name="duration">The duration of the fade in seconds.</param>
+    public static void FadeUIAlpha(RectTransform uiRect, float target, float duration)
+    {
+        if (!uiRect) return;
+
+        if (fadeCoroutines.TryGetValue(uiRect, out object fadeCoToken))
+            MelonCoroutines.Stop(fadeCoToken);
+
+        fadeCoroutines[uiRect] = MelonCoroutines.Start(CoFadeAlphaTo(uiRect, target, duration));
+    }
+
+    private static IEnumerator CoFadeAlphaTo(RectTransform uiRect, float target, float duration)
+    {
+        CanvasGroup group = uiRect.GetComponent<CanvasGroup>() ?? uiRect.gameObject.AddComponent<CanvasGroup>();
+
+        float start = group.alpha;
+        float time = 0f;
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            group.alpha = Mathf.Lerp(start, target, time / duration);
+            yield return null;
+        }
+
+        group.alpha = target;
+        fadeCoroutines.Remove(uiRect, out _);
     }
 
     public static GameObject CreateButton(string name, Transform parent, string text, Action onClick)

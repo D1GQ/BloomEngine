@@ -3,6 +3,7 @@ using MelonLoader;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 namespace BloomEngine.Utilities;
 
