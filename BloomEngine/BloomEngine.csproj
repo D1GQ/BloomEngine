@@ -7,13 +7,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
-	
+
+  <ItemGroup>
+	<EmbeddedResource Include="Assets\**\*" />
+	<None Remove="Assets\**\*" />
+  </ItemGroup>
+
   <ItemGroup>
 	<Reference Include="C:\Program Files (x86)\Steam\steamapps\common\PVZ Replanted\MelonLoader\Il2CppAssemblies\*.dll">
 	  <Private>false</Private>
 	</Reference>
   </ItemGroup>
-
+	
   <ItemGroup>
     <Reference Include="0Harmony">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\PVZ Replanted\MelonLoader\net6\0Harmony.dll</HintPath>

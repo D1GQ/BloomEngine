@@ -28,7 +28,7 @@ internal class ModMenuManager : MonoBehaviour
         container.parent.FindComponent<Image>("Header/Shadow").raycastTarget = false;
         container.parent.FindComponent<Image>("Header/Left/Background_grass02").raycastTarget = false;
 
-        configIconSprite = AssetHelper.LoadSprite("BloomEngine.Assets.Nut.png");
+        configIconSprite = AssetHelper.LoadSprite("BloomEngine.Assets.ConfigIcon.png");
 
         CreateButtons();
         CreateEntries();
