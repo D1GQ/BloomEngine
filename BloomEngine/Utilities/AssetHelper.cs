@@ -11,15 +11,14 @@ public static class AssetHelper
     /// <summary>
     /// Loads a sprite from an embedded resource stream using the specified asset path.
     /// </summary>
-    /// <remarks>The method attempts to load the specified asset as an embedded resource from the executing
-    /// assembly. If the resource is not found, a placeholder texture is used to create the sprite. The sprite's pivot
-    /// is set to the center of the texture, and the pixels-per-unit value is derived from the texture's
-    /// width.</remarks>
-    /// <param name="assetPath">The path to the embedded resource containing the sprite data. This must be a valid resource path within the
-    /// executing assembly.</param>
-    /// <returns>A <see cref="Sprite"/> object created from the embedded resource. The sprite is generated with default pivot and
-    /// pixels-per-unit values. If the resource cannot be found, the sprite will be created from a 1x1 placeholder
-    /// texture.</returns>
+    /// <param name="assetPath">
+    /// The path to the embedded resource image. This must be a valid resource path within the executing assembly 
+    /// (eg. "BloomEngine.Assets.Icon.png"). Make sure that the resource's Build Action is set to <strong>Embedded Resource</strong>
+    /// </param>
+    /// <returns>
+    /// A <see cref="Sprite"/> object created from the embedded resource.
+    /// If the resource cannot be found, the created sprite will be a 2x2 placeholder image.
+    /// </returns>
     public static Sprite LoadSprite(string assetPath)
     {
         Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);

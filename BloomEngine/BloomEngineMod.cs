@@ -1,11 +1,8 @@
-﻿using BloomEngine;
+﻿using BloomEngine.Menu;
 using BloomEngine.Utilities;
+using Il2CppReloaded.Gameplay;
 using MelonLoader;
-using System.Runtime.InteropServices;
-
-[assembly: MelonInfo(typeof(BloomEngineMod), BloomEngineMod.Name, BloomEngineMod.Version, BloomEngineMod.Author)]
-[assembly: MelonGame("PopCap Games", "PvZ Replanted")]
-[assembly: ComVisible(false)]
+using UnityEngine;
 
 namespace BloomEngine;
 
@@ -14,11 +11,15 @@ internal class BloomEngineMod : MelonMod
     public const string Name = "BloomEngine";
     public const string Version = "0.1.0-alpha";
     public const string Author = "PalmForest";
-    public const string Id = "com.palmforest.bloomengine";
 
     public override void OnInitializeMelon()
     {
         Il2CppHelper.RegisterAllMonoBehaviours(MelonAssembly.Assembly);
-        LoggerInstance.Msg($"Successfully loaded version {Version} of {nameof(BloomEngine)}.");
+        LoggerInstance.Msg($"Successfully loaded version {Version} of {Name}.");
+
+        ModMenu.CreateEntry(this)
+            .AddDescription("Mod menu and config manager for PvZ Replanted.")
+            .AddIcon(AssetHelper.LoadSprite("BloomEngine.Assets.ModIcon.png"))
+            .Register();
     }
 }
