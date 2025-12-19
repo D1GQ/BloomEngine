@@ -11,9 +11,9 @@ namespace BloomEngine.Menu;
 /// </summary>
 public static class ModMenu
 {
-    private static ConcurrentDictionary<MelonMod, ModEntry> entries = new ConcurrentDictionary<MelonMod, ModEntry>();
-    private static Dictionary<ModEntry, ConfigPanel> configs = new Dictionary<ModEntry, ConfigPanel>();
-    private static ConfigPanel currentConfigPanel = null;
+    private static Dictionary<MelonMod, ModEntry> entries = new();
+    private static Dictionary<ModEntry, ConfigPanel> configs = new();
+    private static ConfigPanel currentConfigPanel;
 
     /// <summary>
     /// A value that indicates whether a mod config panel is currently open.

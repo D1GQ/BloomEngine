@@ -1,8 +1,6 @@
 ﻿using BloomEngine.Menu;
 using BloomEngine.Utilities;
-using Il2CppReloaded.Gameplay;
 using MelonLoader;
-using UnityEngine;
 
 namespace BloomEngine;
 

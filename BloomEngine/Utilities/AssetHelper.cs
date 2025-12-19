@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using MelonLoader;
+using System.Reflection;
 using UnityEngine;
 
 namespace BloomEngine.Utilities;
@@ -21,8 +22,6 @@ public static class AssetHelper
     /// </returns>
     public static Sprite LoadSprite(string assetPath)
     {
-        Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
-
         Assembly assembly = Assembly.GetExecutingAssembly();
         using Stream stream = assembly.GetManifestResourceStream(assetPath);
 
@@ -30,15 +29,43 @@ public static class AssetHelper
             throw new ArgumentException($"Embedded image resource not found: {assetPath}", nameof(assetPath));
 
         byte[] data = stream.ReadFully();
+        return CreateSpriteFromData(data);
+    }
 
-        if (!ImageConversion.LoadImage(texture, data, false))
-            throw new Exception("ImageConversion.LoadImage call failed");
+    /// <summary>
+    /// Retrieves the contents of an embedded resource and reads them to a byte array.
+    /// </summary>
+    /// <param name="resourcePath">The fully qualifiedthe embedded resource to retrieve. (eg. "BloomEngine.Assets.Icon.png")</param>
+    /// <returns>A byte array containing the contents of the specified embedded resource, or an empty array if the resource is not found.</returns>
+    public static byte[] GetDataFromResource(string resourcePath)
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        using Stream stream = assembly.GetManifestResourceStream(resourcePath);
+
+        if (stream is null)
+            return [];
+        else return stream.ReadFully();
+    }
+
+    /// <summary>
+    /// Creates a new Sprite from the specified image data in memory.
+    /// </summary>
+    /// <param name="imageData">A byte array containing image data in a supported format, such as PNG or JPEG.</param>
+    /// <returns>A Sprite object created from the provided image data.</returns>
+    public static Sprite CreateSpriteFromData(byte[] imageData)
+    {
+        Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
+
+        if (!ImageConversion.LoadImage(texture, imageData, false))
+           MelonLogger.Error("ImageConversion.LoadImage call failed when creating sprite from data.");
 
         texture.Apply(false, false);
 
-        return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100f);
-    }
+        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100f);
+        sprite.hideFlags |= HideFlags.HideAndDontSave | HideFlags.DontSaveInEditor;
 
+        return sprite;
+    }
 
     /// <summary>
     /// Loads an embedded AssetBundle resource from the Assets directory.
