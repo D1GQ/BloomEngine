@@ -1,9 +1,11 @@
 ﻿using BloomEngine.Utilities;
+using Il2CppInterop.Runtime.Attributes;
 using Il2CppTMPro;
 using Il2CppUI.Scripts;
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace BloomEngine.Menu;
@@ -15,18 +17,20 @@ internal class ModMenuManager : MonoBehaviour
     private Transform container;
     private AchievementsUI ui;
 
+    private static Sprite configIconSprite;
+
     public void Start()
     {
         ui = transform.GetComponentInParent<AchievementsUI>();
-
         container = transform.parent.Find("ScrollView").Find("Viewport").Find("Content").Find("Achievements");
-
-        CreateButtons();
 
         // Prevent header from blocking clicks on mod entries
         container.parent.FindComponent<Image>("Header/Shadow").raycastTarget = false;
         container.parent.FindComponent<Image>("Header/Left/Background_grass02").raycastTarget = false;
 
+        configIconSprite = AssetHelper.LoadSprite("BloomEngine.Assets.Nut.png");
+
+        CreateButtons();
         CreateEntries();
     }
 
@@ -62,30 +66,70 @@ internal class ModMenuManager : MonoBehaviour
             modObj.name = $"ModEntry_{mod.Info.Name}";
             entryObjects.Add(modObj);
 
-            // If the mod is registered in the ModMenu, use its display name and description
-            if (ModMenu.Entries.TryGetValue(mod, out ModEntry registered))
+            // Get this mod's mod menu entry if it has one
+            bool isRegistered = ModMenu.Entries.TryGetValue(mod, out ModEntry entry);
+
+            var title = modObj.FindComponent<TextMeshProUGUI>("Title");
+            var subheader = modObj.FindComponent<TextMeshProUGUI>("Subheader");
+
+            // Sets the name and description of unregistered mods to default values
+            if(!isRegistered)
             {
-                // Create a button for the modInfo's config panel if it has one
-                if (registered.HasConfig)
-                {
-                    Button configButton = modObj.transform.Find("Icon").gameObject.AddComponent<Button>();
-                    configButton.onClick.AddListener(() => ModMenu.ShowConfigPanel(registered));
-
-                    var colors = configButton.colors;
-                    colors.normalColor = Color.white;
-                    colors.highlightedColor = new Color(0.75f, 0.75f, 0.75f, 1f);
-                    colors.fadeDuration = 0.1f;
-
-                    configButton.colors = colors;
-                }
+                title.text = mod.Info.Name;
+                title.color = new Color(1f, 0.6f, 0.1f, 1f);
+                subheader.text = $"{mod.Info.Author}\n{mod.Info.Version}";
+                continue;
             }
-            // If it isn't registered, make its heading yellow
-            else modObj.FindComponent<TextMeshProUGUI>("Title").color = new Color(1f, 0.6f, 0.1f, 1f);
 
-            modObj.FindComponent<TextMeshProUGUI>("Title").text = registered is not null ? registered.DisplayName : mod.Info.Name;
-            modObj.FindComponent<TextMeshProUGUI>("Subheader").text = registered is not null ? registered.Description : $"{mod.Info.Author}\n{mod.Info.Version}";
+            // If this mod is registered, update the display name, description and icon
+            title.text = entry.DisplayName;
+            subheader.text = entry.Description;
+
+            GameObject modIconObj = modObj.transform.Find("Icon").gameObject;
+            if(entry.Icon is not null) modIconObj.GetComponent<Image>().sprite = entry.Icon;
+
+            // If this entry has a config, create a config button
+            if (entry.HasConfig)
+            {
+                // Add a button component to the icon object
+                Button configButton = modIconObj.AddComponent<Button>();
+                configButton.onClick.AddListener(() => ModMenu.ShowConfigPanel(entry));
+
+                // Adjust the icon's colors on hover
+                var colors = configButton.colors;
+                colors.normalColor = Color.white;
+                colors.highlightedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+                colors.fadeDuration = 0.1f;
+                configButton.colors = colors;
+
+                // Create a config icon that appears when you hover over the mod entry
+                GameObject configIconObj = GameObject.Instantiate(modIconObj, modIconObj.transform.parent);
+                RectTransform configIconRect = configIconObj.GetComponent<RectTransform>();
+                configIconRect.sizeDelta = new Vector2(150, 150);
+                configIconRect.anchoredPosition = new Vector2(25, 0);
+                Image configIconImg = configIconObj.GetComponent<Image>();
+                configIconImg.sprite = configIconSprite;
+                configIconImg.raycastTarget = false;
+                configIconObj.AddComponent<CanvasGroup>().alpha = 0f;
+
+                EventTrigger trigger = modIconObj.AddComponent<EventTrigger>();
+                trigger.triggers = new Il2CppSystem.Collections.Generic.List<EventTrigger.Entry>();
+
+                // On pointer enter trigger - fade in config icon
+                EventTrigger.Entry pointerEnter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+                pointerEnter.callback.AddListener(_ => UIHelper.FadeUIAlpha(configIconRect, 1f, 0.25f));
+                trigger.triggers.Add(pointerEnter);
+
+                // On pointer exit trigger - fade out config icon
+                EventTrigger.Entry pointerExit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+                pointerExit.callback.AddListener(_ => UIHelper.FadeUIAlpha(configIconRect, 0f, 0.25f));
+                trigger.triggers.Add(pointerExit);
+            }
         }
     }
+
+    
+
 
     /// <summary>
     /// Sets the title text of the container screen

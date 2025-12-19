@@ -1,6 +1,8 @@
 ﻿using BloomEngine.Config.Inputs;
+using BloomEngine.Utilities;
 using MelonLoader;
 using System.Reflection;
+using UnityEngine;
 
 namespace BloomEngine.Menu;
 
@@ -24,8 +26,10 @@ public class ModEntry(MelonMod mod)
     /// </summary>
     public string Description { get; private set; } = $"{mod.Info.Author}\n{mod.Info.Version}";
 
-    // TODO: Add the required functionality and uncomment this property, adding documentation
-    //public Texture2D Icon { get; private set; }
+    /// <summary>
+    /// Sprite that shows up as the icon for this mod in the mod menu.
+    /// </summary>
+    public Sprite Icon { get; private set; }
 
     /// <summary>
     /// A list of all the registered config input fields for this mod.
@@ -63,12 +67,19 @@ public class ModEntry(MelonMod mod)
         return this;
     }
 
-    // TODO: Add the required functionality, uncomment this method and document it
-    //public ModEntry AddIcon(Texture2D image)
-    //{
-    //    Image = image;
-    //    return this;
-    //}
+    /// <summary>
+    /// Adds a custom icon to this entry in the mod menu.
+    /// </summary>
+    /// <param name="iconSprite">
+    /// The iconSprite to replace the default icon with.<br/>
+    /// To load a iconSprite, you can add it to your mod as an embedded resource and load it with <see cref="AssetHelper.LoadSprite(string)"/>.
+    /// </param>
+    /// <returns>This mod entry with the new icon.</returns>
+    public ModEntry AddIcon(Sprite iconSprite)
+    {
+        Icon = iconSprite;
+        return this;
+    }
 
     /// <summary>
     /// Adds a config to this mod using a static config class.
