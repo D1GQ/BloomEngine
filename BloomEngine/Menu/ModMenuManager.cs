@@ -3,7 +3,6 @@ using Il2CppTMPro;
 using Il2CppUI.Scripts;
 using MelonLoader;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -12,23 +11,34 @@ namespace BloomEngine.Menu;
 internal class ModMenuManager : MonoBehaviour
 {
     public bool ModMenuOpen { get; private set; } = false;
-    private readonly List<GameObject> entryObjects = new List<GameObject>();
-    private Transform container;
-    private AchievementsUI ui;
 
-    private static Sprite configIconSprite;
+    private GameObject achievementsContainer;
+    private GameObject modsContainer;
+    private GameObject header;
+
+    private AchievementsUI achievementsUi;
+
+    private static Sprite configIconSprite = AssetHelper.LoadSprite("BloomEngine.Assets.ConfigIcon.png");
 
     public void Start()
     {
-        ui = transform.GetComponentInParent<AchievementsUI>();
-        container = transform.parent.Find("ScrollView").Find("Viewport").Find("Content").Find("Achievements");
+        // Find the achievements container and AchievementsUI component
+        achievementsContainer = transform.Find("ScrollView/Viewport/Content/Achievements").gameObject;
+        achievementsUi = transform.GetComponent<AchievementsUI>();
+
+        // Setup the mods container
+        modsContainer = GameObject.Instantiate(achievementsContainer, achievementsContainer.transform.parent);
+        modsContainer.name = "ModEntries";
+
+        for (int i = 0; i < modsContainer.transform.childCount; i++)
+            GameObject.Destroy(modsContainer.transform.GetChild(i).gameObject);
 
         // Prevent header from blocking clicks on mod entries
-        container.parent.FindComponent<Image>("Header/Shadow").raycastTarget = false;
-        container.parent.FindComponent<Image>("Header/Left/Background_grass02").raycastTarget = false;
+        header = transform.Find("ScrollView/Viewport/Content/Header").gameObject;
+        header.transform.Find("Shadow").GetComponent<Image>().raycastTarget = false;
+        header.transform.Find("Left/Background_grass02").GetComponent<Image>().raycastTarget = false;
 
-        configIconSprite = AssetHelper.LoadSprite("BloomEngine.Assets.ConfigIcon.png");
-
+        // Create the buttons and mod entries
         CreateButtons();
         CreateEntries();
     }
@@ -36,7 +46,7 @@ internal class ModMenuManager : MonoBehaviour
 
     private void CreateButtons()
     {
-        GameObject obj = UIHelper.CreateButton("ModsButton", transform, "Mods", OpenModList);
+        GameObject obj = UIHelper.CreateButton("ModsButton", transform, "Mods", OpenModMenu);
 
         // Position the modsButton in the bottom left corner
         RectTransform rect = obj.GetComponent<RectTransform>();
@@ -46,13 +56,9 @@ internal class ModMenuManager : MonoBehaviour
         rect.anchoredPosition = new Vector2(25, rect.rect.height + 100);
 
         // Update the achievements button to reset the text and hide the mod entries
-        transform.parent.parent.FindComponent<Button>("Main/BG_Tree/AchievementsButton").onClick.AddListener((UnityAction)(() =>
-        {
-            SetHeaderText("Achievements");
-            SetEntriesEnabled(false);
-        }));
-
-        ui.m_backButton.onClick.AddListener((UnityAction)(() => ModMenuOpen = false));
+        Button achievementsButton = transform.parent.FindComponent<Button>("Main/BG_Tree/AchievementsButton");
+        achievementsButton.onClick.AddListener(() => SetCurrentMenu(showModMenu: false));
+        achievementsUi.m_backButton.onClick.AddListener(() => ModMenuOpen = false);
     }
 
     private void CreateEntries()
@@ -60,10 +66,9 @@ internal class ModMenuManager : MonoBehaviour
         foreach (var mod in MelonMod.RegisteredMelons)
         {
             // Create a new mod achievement for this mod
-            GameObject modObj = GameObject.Instantiate(transform.parent.parent.Find("Achievements/AchievementItem").gameObject, container);
+            GameObject modObj = GameObject.Instantiate(transform.Find("AchievementItem").gameObject, modsContainer.transform);
             modObj.SetActive(true);
             modObj.name = $"ModEntry_{mod.Info.Name}";
-            entryObjects.Add(modObj);
 
             // Get this mod's mod menu entry if it has one
             bool isRegistered = ModMenu.Entries.TryGetValue(mod, out ModEntry entry);
@@ -127,54 +132,41 @@ internal class ModMenuManager : MonoBehaviour
         }
     }
 
-    
-
 
     /// <summary>
     /// Sets the title text of the container screen
     /// </summary>
     private void SetHeaderText(string text)
     {
-        container.parent.FindComponent<TextMeshProUGUI>("Header/Center/HeaderRock").text = text;
-        container.parent.FindComponent<TextMeshProUGUI>("Header/Center/HeaderRockTop").text = text;
-        container.parent.FindComponent<TextMeshProUGUI>("Header/Center/HeaderRockBottom").text = text;
+        header.transform.FindComponent<TextMeshProUGUI>("Center/HeaderRock").text = text;
+        header.transform.FindComponent<TextMeshProUGUI>("Center/HeaderRockTop").text = text;
+        header.transform.FindComponent<TextMeshProUGUI>("Center/HeaderRockBottom").text = text;
     }
 
     /// <summary>
-    /// Replaces the achievement entries with the mod entires, or vice versa.
+    /// Sets the current menu to either the mod menu or achievements menu.
     /// </summary>
-    /// <param name="enableMods">Whether to show the mod list or the achievement list.</param>
-    private void SetEntriesEnabled(bool enableMods)
+    /// <param name="showModMenu">If true, enables the mod menu, otherwise shows the achievements menu.</param>
+    private void SetCurrentMenu(bool showModMenu)
     {
-        // Change the state of all mod entries
-        foreach(var mod in entryObjects)
-            mod.SetActive(enableMods);
-
-        // Change the state of all achievement entries
-        for (int i = 0; i < container.childCount; i++)
-        {
-            GameObject achievement = container.GetChild(i).gameObject;
-
-            if (achievement.name.StartsWith("P_") && achievement.name.EndsWith("(Clone)"))
-                achievement.SetActive(!enableMods);
-        }
+        SetHeaderText(showModMenu ? "Mods" : "Achievements");
+        achievementsContainer.SetActive(!showModMenu);
+        modsContainer.SetActive(showModMenu);
     }
 
     /// <summary>
     /// Opens the mod list and updates the UI.
     /// </summary>
-    private void OpenModList()
+    private void OpenModMenu()
     {
-        SetHeaderText("Mods");
-        SetEntriesEnabled(true);
-
+        SetCurrentMenu(showModMenu: true);
         PlayTransitionAnim();
         ModMenuOpen = true;
-        ui.m_achievementsIsActive = true;
+        achievementsUi.m_achievementsIsActive = true;
     }
 
     /// <summary>
-    /// Triggers the animation that plays when the camera pans down to the container screen.
+    /// Triggers the animation that plays when the camera pans down to the achievements screen.
     /// </summary>
     private static void PlayTransitionAnim() => UIHelper.MainMenu.PlayAnimation("A_MainMenu_Achievements_In");
 }

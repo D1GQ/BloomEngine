@@ -1,8 +1,6 @@
 ﻿using BloomEngine.Menu;
 using HarmonyLib;
 using Il2CppUI.Scripts;
-using UnityEngine;
-using static Il2CppReloaded.Constants.Input.ActionMap;
 
 namespace BloomEngine.Patches;
 
@@ -15,20 +13,8 @@ internal static class ModMenuPatches
     [HarmonyPatch(nameof(AchievementsUI.Start))]
     private static void Postfix(AchievementsUI __instance)
     {
-        if (__instance.transform.Find("ModListManager") is not null)
-            return;
-
-        GameObject modList = new GameObject("ModListManager");
-        modList.transform.SetParent(__instance.transform, false);
-
-        // Stretch to screen
-        RectTransform rect = modList.AddComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
-
-        modList.AddComponent<ModMenuManager>();
+        if(!__instance.GetComponent<ModMenuManager>())
+            __instance.gameObject.AddComponent<ModMenuManager>();
     }
 
     /// <summary>
